@@ -1,6 +1,7 @@
-#include "Cell.h"
 
-Cell::Cell() : state(0) {}
+#include <Cell.h>
+
+#include "Cell.h"
 
 void Cell::setState(unsigned short newState) {
     if (newState > 1) {
@@ -12,3 +13,8 @@ void Cell::setState(unsigned short newState) {
 QColor Cell::getColor() const {
     return colors[state];
 }
+
+short Cell::getState() const {
+    return state;
+}
+

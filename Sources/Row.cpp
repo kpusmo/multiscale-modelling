@@ -1,4 +1,5 @@
-#include "Row.h"
+#include <Row.h>
+#include <iostream>
 
 Row::Row(unsigned short l) : length(l) {
     row.assign(l, Cell());
@@ -13,9 +14,14 @@ Row::Row(const Row &toCopy) {
 }
 
 Cell &Row::operator[](short i) {
+    return row[getIndex(i)];
+}
+
+Cell Row::operator[](short i) const {
+    return row[getIndex(i)];
+}
+
+short Row::getIndex(short i) const {
     int index = abs(i) % length;
-    if (i < 0) {
-        return row[length - index];
-    }
-    return row[index];
+    return static_cast<short>(i >= 0 || index == 0 ? index : length - index);
 }

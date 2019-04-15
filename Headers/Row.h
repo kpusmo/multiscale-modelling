@@ -12,7 +12,11 @@ public:
 
     Cell &operator[](short i);
 
+    Cell operator[](short i) const;
+
 protected:
+    inline short getIndex(short i) const;
+
     unsigned short length;
     std::vector<Cell> row;
 };

@@ -6,18 +6,16 @@
 
 class Cell {
 public:
-    Cell();
+    Cell() = default;
 
     void setState(unsigned short newState);
 
-    unsigned short getState() const {
-        return state;
-    }
+    short getState() const;
 
     QColor getColor() const;
 
 protected:
-    unsigned short state;
+    unsigned short state{0};
     QColor colors[2] = {Qt::yellow, Qt::red};
 };
 
