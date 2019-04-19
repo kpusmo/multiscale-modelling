@@ -25,4 +25,5 @@ void MainWindow::on_startButton_clicked() {
 void MainWindow::on_drawButton_clicked() {
     auto cellCount = static_cast<unsigned short>(ui->cellCountInput->value());
     gridModel.setCellCount(cellCount);
+    ui->celluralTable->resizeColumnsToContents();
 }

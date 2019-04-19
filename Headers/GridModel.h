@@ -6,6 +6,7 @@
 
 #include <QAbstractTableModel>
 #include "Grid.h"
+#include "Cell.h"
 
 class GridModel : public QAbstractTableModel {
 Q_OBJECT
@@ -28,7 +29,7 @@ public slots:
     void onCellSelected(const QModelIndex &index);
 
 protected:
-    Grid grid;
+    Grid<Cell> grid;
 };
 
 
