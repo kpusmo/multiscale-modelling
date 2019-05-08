@@ -19,7 +19,7 @@ public:
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-    void setCellCount(unsigned short cellCount);
+    void setCellCount(unsigned short cellCount, int highStateCount = 10);
 
     void setSimulationSteps(unsigned short rows);
 

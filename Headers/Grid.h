@@ -3,6 +3,7 @@
 
 #include "Row.h"
 #include <vector>
+#include <algorithm>
 #include <stdexcept>
 
 template<typename T>
@@ -23,6 +24,8 @@ public:
     unsigned short getHeight() const;
 
     unsigned short getWidth() const;
+
+    void setRandomHighStates(int count);
 
 protected:
     inline short getIndex(short i) const;
@@ -80,6 +83,17 @@ void Grid<T>::setHeight(unsigned short h) {
     }
     height = h;
     grid.insert(grid.begin() + 1, static_cast<unsigned long>(height - 1), Row<T>(width));
+}
+
+template<typename T>
+void Grid<T>::setRandomHighStates(int count) {
+    if (count > width) {
+        count = width;
+    }
+    for (int i = 0; i < count; ++i) {
+        auto index = random() % width;
+        grid[0][index].setState(1);
+    }
 }
 
 #endif //GRID_H

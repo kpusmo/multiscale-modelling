@@ -25,9 +25,10 @@ QVariant GridModel::data(const QModelIndex &index, int role) const {
     return QVariant();
 }
 
-void GridModel::setCellCount(unsigned short cellCount) {
+void GridModel::setCellCount(unsigned short cellCount, int highStateCount) {
     beginResetModel();
     grid.reset(1, cellCount);
+    grid.setRandomHighStates(highStateCount);
     endResetModel();
 }
 
