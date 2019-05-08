@@ -10,6 +10,8 @@ public:
 
     void setState(unsigned short newState);
 
+    void changeState();
+
     short getState() const;
 
     QColor getColor() const;

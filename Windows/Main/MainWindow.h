@@ -2,7 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "GridModel.h"
+#include "Windows/OneDimensional/OneDimensionalWindow.h"
+#include "Windows/Game/GameWindow.h"
 
 namespace Ui {
     class MainWindow;
@@ -17,14 +18,13 @@ public:
     ~MainWindow() override;
 
 private slots:
-
-    void on_startButton_clicked();
-
-    void on_drawButton_clicked();
+    void on_oneDimensionalModeButton_clicked();
+    void on_gameModeButton_clicked();
 
 private:
     Ui::MainWindow *ui;
-    GridModel gridModel;
+    OneDimensionalWindow *oneDimensionalModeWindow;
+    GameWindow *gameModeWindow;
 };
 
 #endif // MAINWINDOW_H

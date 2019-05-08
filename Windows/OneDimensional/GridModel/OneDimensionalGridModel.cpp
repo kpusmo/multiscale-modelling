@@ -1,38 +1,15 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "google-default-arguments"
-
-#include <GridModel.h>
+#include "OneDimensionalGridModel.h"
 #include <QDebug>
 #include <iostream>
 
-GridModel::GridModel(QObject *parent) : QAbstractTableModel(parent) {}
-
-int GridModel::rowCount(const QModelIndex &index) const {
-    return grid.getHeight();
-}
-
-int GridModel::columnCount(const QModelIndex &index) const {
-    return grid.getWidth();
-}
-
-QVariant GridModel::data(const QModelIndex &index, int role) const {
-    int row = index.row();
-    int column = index.column();
-
-    if (role == Qt::BackgroundRole) {
-        return grid[row][column].getColor();
-    }
-    return QVariant();
-}
-
-void GridModel::setCellCount(unsigned short cellCount, int highStateCount) {
+void OneDimensionalGridModel::setCellCount(unsigned short cellCount, int highStateCount) {
     beginResetModel();
     grid.reset(1, cellCount);
     grid.setRandomHighStates(highStateCount);
     endResetModel();
 }
 
-void GridModel::setSimulationSteps(unsigned short rows) {
+void OneDimensionalGridModel::setSimulationSteps(unsigned short rows) {
     if (grid.getWidth() == 0) {
         return;
     }
@@ -41,7 +18,7 @@ void GridModel::setSimulationSteps(unsigned short rows) {
     endResetModel();
 }
 
-void GridModel::simulate(unsigned short rule) {
+void OneDimensionalGridModel::simulate() {
     if (grid.getWidth() == 0 || grid.getHeight() == 0) {
         return;
     }
@@ -59,14 +36,20 @@ void GridModel::simulate(unsigned short rule) {
     emit dataChanged(topLeft, bottomRight);
 }
 
-void GridModel::onCellSelected(const QModelIndex &index) {
-    if (grid.getHeight() != 1) { //selection available only before simulation
-        return;
-    }
-    int column = index.column();
-    int row = index.row();
+bool OneDimensionalGridModel::isCellSelectionAvailable() {
+    return grid.getHeight() == 1;
+}
 
-    auto newState = static_cast<unsigned short>((grid[row][column].getState() + 1) % 2);
-    grid[row][column].setState(newState);
-    emit dataChanged(index, index);
+QVariant OneDimensionalGridModel::data(const QModelIndex &index, int role) const {
+    int row = index.row();
+    int column = index.column();
+
+    if (role == Qt::BackgroundRole) {
+        return grid[row][column].getColor();
+    }
+    return QVariant();
+}
+
+void OneDimensionalGridModel::setRule(unsigned short r) {
+    rule = r;
 }

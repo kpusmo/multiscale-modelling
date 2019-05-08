@@ -1,8 +1,8 @@
-#include <MainWindow.h>
-#include "ui_mainwindow.h"
+#include "OneDimensionalWindow.h"
+#include "ui_onedimensionalwindow.h"
 #include <cmath>
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
+OneDimensionalWindow::OneDimensionalWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::OneDimensionalWindow) {
     ui->setupUi(this);
     ui->celluralTable->setModel(&gridModel);
     ui->celluralTable->setFocusPolicy(Qt::NoFocus);
@@ -12,25 +12,27 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->celluralTable->horizontalHeader()->setVisible(false);
 }
 
-MainWindow::~MainWindow() {
+OneDimensionalWindow::~OneDimensionalWindow() {
     delete ui;
 }
 
-void MainWindow::on_startButton_clicked() {
+void OneDimensionalWindow::on_startButton_clicked() {
     auto rule = static_cast<unsigned short>(ui->ruleInput->value());
     auto simulationSteps = static_cast<unsigned short>(ui->simulationStepsInput->value());
     gridModel.setSimulationSteps(simulationSteps);
     for (int i = 0; i < simulationSteps + 1; ++i) {
         ui->celluralTable->setRowHeight(i, ui->celluralTable->columnWidth(0));
     }
-    gridModel.simulate(rule);
+    gridModel.setRule(rule);
+    gridModel.simulate();
 }
 
-void MainWindow::on_drawButton_clicked() {
+void OneDimensionalWindow::on_drawButton_clicked() {
     auto cellCount = static_cast<unsigned short>(ui->cellCountInput->value());
     auto highStateCount = ui->highStateCountInput->value();
-    gridModel.setCellCount(cellCount, highStateCount);
-    int size = static_cast<int>(floor(1. * ui->celluralTable->width() / cellCount));
+        gridModel.setCellCount(cellCount, highStateCount);
+        int size = static_cast<int>(floor(1. * ui->celluralTable->width() / cellCount));
+    size = std::min(size, 50);
     for (int i = 0; i < cellCount; ++i) {
         ui->celluralTable->setColumnWidth(i, size);
     }

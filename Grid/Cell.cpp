@@ -1,5 +1,4 @@
-
-#include <Cell.h>
+#include "Cell.h"
 
 #include "Cell.h"
 
@@ -16,5 +15,9 @@ QColor Cell::getColor() const {
 
 short Cell::getState() const {
     return state;
+}
+
+void Cell::changeState() {
+    state = static_cast<unsigned short>((state + 1) % 2);
 }
 

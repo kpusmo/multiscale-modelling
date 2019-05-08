@@ -52,10 +52,8 @@ const Row<T> &Grid<T>::operator[](short i) const {
 
 template<typename T>
 short Grid<T>::getIndex(short i) const {
-    if (i < 0 || i >= height) {
-        throw std::runtime_error("Grid index out of range");
-    }
-    return i;
+    int index = abs(i) % height;
+    return static_cast<short>(i >= 0 || index == 0 ? index : height - index);
 }
 
 template<typename T>
@@ -90,9 +88,10 @@ void Grid<T>::setRandomHighStates(int count) {
     if (count > width) {
         count = width;
     }
-    for (int i = 0; i < count; ++i) {
-        auto index = random() % width;
-        grid[0][index].setState(1);
+    for (int counter = 0; counter < count; ++counter) {
+        auto j = random() % width;
+        auto i = random() % height;
+        grid[i][j].setState(1);
     }
 }
 
