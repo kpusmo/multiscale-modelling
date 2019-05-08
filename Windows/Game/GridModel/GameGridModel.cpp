@@ -1,5 +1,4 @@
 #include "GameGridModel.h"
-#include <ctime>
 
 GameGridModel::GameGridModel() : timer(new QTimer(this)) {
     connect(timer, SIGNAL(timeout()), SLOT(incrementResultIndex()));
@@ -20,31 +19,31 @@ void GameGridModel::drawGrid(unsigned short height, unsigned short width, const 
 }
 
 void GameGridModel::setStartingComposition(const QString &startingComposition) {
-    srand(time(NULL));
-    for (int k = 0; k < 200; ++k) {
-        auto i = static_cast<int>(random() % grid.getHeight());
-        auto j = static_cast<int>(random() % grid.getWidth());
-        if (startingComposition == "Niezmienny") {
-            grid[i][j].setState(1);
-            grid[i + 1][j + 1].setState(1);
-            grid[i + 1][j + 2].setState(1);
-            grid[i][j + 3].setState(1);
-            grid[i - 1][j + 2].setState(1);
-            grid[i - 1][j + 1].setState(1);
-        } else if (startingComposition == "Glider") {
-            grid[i][j].setState(1);
-            grid[i][j + 1].setState(1);
-            grid[i - 1][j].setState(1);
-            grid[i - 1][j - 1].setState(1);
-            grid[i - 2][j + 1].setState(1);
-        } else if (startingComposition == "Oscylator") {
-            grid[i][j].setState(1);
-            grid[i + 1][j].setState(1);
-            grid[i + 2][j].setState(1);
-        } else if (startingComposition == "Losowy") {
-            grid.setRandomHighStates(i * j);
-        }
+//    srand(time(NULL));
+//    for (int k = 0; k < 200; ++k) {
+    auto i = static_cast<int>(random() % grid.getHeight());
+    auto j = static_cast<int>(random() % grid.getWidth());
+    if (startingComposition == "Niezmienny") {
+        grid[i][j].setState(1);
+        grid[i + 1][j + 1].setState(1);
+        grid[i + 1][j + 2].setState(1);
+        grid[i][j + 3].setState(1);
+        grid[i - 1][j + 2].setState(1);
+        grid[i - 1][j + 1].setState(1);
+    } else if (startingComposition == "Glider") {
+        grid[i][j].setState(1);
+        grid[i][j + 1].setState(1);
+        grid[i - 1][j].setState(1);
+        grid[i - 1][j - 1].setState(1);
+        grid[i - 2][j + 1].setState(1);
+    } else if (startingComposition == "Oscylator") {
+        grid[i][j].setState(1);
+        grid[i + 1][j].setState(1);
+        grid[i + 2][j].setState(1);
+    } else if (startingComposition == "Losowy") {
+        grid.setRandomHighStates(i * j);
     }
+//    }
 }
 
 void GameGridModel::startSimulation() {
