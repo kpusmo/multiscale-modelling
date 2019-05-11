@@ -20,9 +20,6 @@ void OneDimensionalWindow::on_startButton_clicked() {
     auto rule = static_cast<unsigned short>(ui->ruleInput->value());
     auto simulationSteps = static_cast<unsigned short>(ui->simulationStepsInput->value());
     gridModel.setSimulationSteps(simulationSteps);
-    for (int i = 0; i < simulationSteps + 1; ++i) {
-        ui->celluralTable->setRowHeight(i, ui->celluralTable->columnWidth(0));
-    }
     gridModel.setRule(rule);
     gridModel.simulate();
 }
@@ -30,11 +27,9 @@ void OneDimensionalWindow::on_startButton_clicked() {
 void OneDimensionalWindow::on_drawButton_clicked() {
     auto cellCount = static_cast<unsigned short>(ui->cellCountInput->value());
     auto highStateCount = ui->highStateCountInput->value();
-        gridModel.setCellCount(cellCount, highStateCount);
-        int size = static_cast<int>(floor(1. * ui->celluralTable->width() / cellCount));
+    int size = static_cast<int>(floor(1. * ui->celluralTable->width() / cellCount));
     size = std::min(size, 50);
-    for (int i = 0; i < cellCount; ++i) {
-        ui->celluralTable->setColumnWidth(i, size);
-    }
-    ui->celluralTable->setRowHeight(0, size);
+    ui->celluralTable->verticalHeader()->setDefaultSectionSize(size);
+    ui->celluralTable->horizontalHeader()->setDefaultSectionSize(size);
+    gridModel.setCellCount(cellCount, highStateCount);
 }

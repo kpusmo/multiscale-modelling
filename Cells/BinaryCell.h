@@ -4,9 +4,9 @@
 #include <QColor>
 
 
-class Cell {
+class BinaryCell {
 public:
-    Cell() = default;
+    BinaryCell() = default;
 
     void setState(unsigned short newState);
 

@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GrainGrowthWindow</class>
+ <widget class="QMainWindow" name="GrainGrowthWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout" columnstretch="1,10">
+    <item row="0" column="1">
+     <widget class="QTableView" name="celluralTable"/>
+    </item>
+    <item row="0" column="0">
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0" colspan="2">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Szerokość</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QSpinBox" name="widthInput">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>20000</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Wysokość</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="QSpinBox" name="heightInput">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>20000</number>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="2">
+       <widget class="QComboBox" name="startingCompositionSelect">
+        <item>
+         <property name="text">
+          <string>Ręczny</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Losowy</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Losowy z promieniem</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Jednorodny</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="6" column="0" colspan="2">
+       <widget class="QPushButton" name="drawButton">
+        <property name="text">
+         <string>Rysuj</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="2">
+       <widget class="QGroupBox" name="groupBox">
+        <property name="title">
+         <string>Warunki brzegowe</string>
+        </property>
+        <layout class="QFormLayout" name="formLayout_2">
+         <item row="0" column="0">
+          <widget class="QRadioButton" name="periodicalBcRadioButton">
+           <property name="text">
+            <string>Periodyczne</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QRadioButton" name="absorbingBcRadioButton">
+           <property name="text">
+            <string>Absorbujące</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="9" column="0" colspan="2">
+       <widget class="QPushButton" name="simulateButton">
+        <property name="text">
+         <string>Rozpocznij symulację</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0" colspan="2">
+       <widget class="QStackedWidget" name="stackedWidget">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="emptyPage"/>
+        <widget class="QWidget" name="randomPage">
+         <layout class="QFormLayout" name="formLayout_3">
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Liczba ziaren</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QSpinBox" name="randomGrainCountInput">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="randomWithRadiusPage">
+         <layout class="QFormLayout" name="formLayout_4">
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Liczba ziaren</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QSpinBox" name="randomWithRadiusGrainCountInput">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Promień</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <widget class="QSpinBox" name="radiusInput">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>20000</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="homogeneousPage">
+         <layout class="QFormLayout" name="formLayout_5">
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Ziaren w poziomie</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QSpinBox" name="grainColumnsInput"/>
+          </item>
+          <item row="4" column="0" colspan="2">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Ziaren w pionie</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0" colspan="2">
+           <widget class="QSpinBox" name="grainRowsInput"/>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <tabstops>
+  <tabstop>widthInput</tabstop>
+  <tabstop>heightInput</tabstop>
+  <tabstop>drawButton</tabstop>
+  <tabstop>simulateButton</tabstop>
+  <tabstop>celluralTable</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

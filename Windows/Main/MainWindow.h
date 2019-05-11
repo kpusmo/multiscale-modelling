@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "Windows/OneDimensional/OneDimensionalWindow.h"
 #include "Windows/Game/GameWindow.h"
+#include "Windows/GrainGrowth/GrainGrowthWindow.h"
 
 namespace Ui {
     class MainWindow;
@@ -20,11 +21,13 @@ public:
 private slots:
     void on_oneDimensionalModeButton_clicked();
     void on_gameModeButton_clicked();
+    void on_grainGrowthButton_clicked();
 
 private:
     Ui::MainWindow *ui;
     OneDimensionalWindow *oneDimensionalModeWindow;
     GameWindow *gameModeWindow;
+    GrainGrowthWindow *grainGrowthWindow;
 };
 
 #endif // MAINWINDOW_H

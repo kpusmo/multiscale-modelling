@@ -1,13 +1,11 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "google-default-arguments"
 #ifndef WIELOSKALOWE_ONEDIMENSIONALGRIDMODEL_H
 #define WIELOSKALOWE_ONEDIMENSIONALGRIDMODEL_H
 
 
 #include "AbstractGridModel/GridModel.h"
-#include "Grid/Cell.h"
+#include "Cells/BinaryCell.h"
 
-class OneDimensionalGridModel : public GridModel<Cell> {
+class OneDimensionalGridModel : public GridModel<BinaryCell> {
 Q_OBJECT
 public:
     void setCellCount(unsigned short cellCount, int highStateCount = 10);
@@ -18,7 +16,6 @@ public:
 
     void simulate() override;
 
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 protected:
     bool isCellSelectionAvailable() override;
 
@@ -27,4 +24,3 @@ protected:
 
 
 #endif //WIELOSKALOWE_ONEDIMENSIONALGRIDMODEL_H
-#pragma clang diagnostic pop

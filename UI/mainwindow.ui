@@ -29,6 +29,13 @@
       </property>
      </widget>
     </item>
+    <item row="0" column="2">
+     <widget class="QPushButton" name="grainGrowthButton">
+      <property name="text">
+       <string>Rozrost ziaren</string>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">

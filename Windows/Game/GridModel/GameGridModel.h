@@ -2,11 +2,11 @@
 #define WIELOSKALOWE_GAMEGRIDMODEL_H
 
 
-#include <Grid/Cell.h>
+#include <Cells/BinaryCell.h>
 #include <AbstractGridModel/GridModel.h>
 #include <QTimer>
 
-class GameGridModel : public GridModel<Cell> {
+class GameGridModel : public GridModel<BinaryCell> {
 Q_OBJECT
 public:
     static const unsigned TIMER_INTERVAL{500}; //milliseconds
@@ -21,23 +21,21 @@ public:
 
     void simulate() override;
 
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-
 public slots:
-    void incrementResultIndex();
+    void nextStep();
 
 protected:
     bool isCellSelectionAvailable() override;
 
     unsigned countLivingSurroundingCells(int i, int j);
 
-    std::vector<Grid<Cell>> results;
-    int currentResult{-1};
+    void setStartingComposition(const QString &startingComposition);
+
+    Grid<BinaryCell> previousState;
+    bool isRunning{false};
     QTimer *timer{nullptr};
 
-    void startTimer();
-
-    void setStartingComposition(const QString &startingComposition);
+    void stopSimulation();
 };
 
 

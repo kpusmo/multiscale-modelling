@@ -17,6 +17,8 @@ public:
 
     virtual void simulate() = 0;
 
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+
 public slots:
     void onCellSelected(const QModelIndex &index) override;
 
@@ -46,6 +48,17 @@ void GridModel<T>::onCellSelected(const QModelIndex &index) {
 
     grid[row][column].changeState();
     emit dataChanged(index, index);
+}
+
+template<typename T>
+QVariant GridModel<T>::data(const QModelIndex &index, int role) const {
+    int row = index.row();
+    int column = index.column();
+
+    if (role == Qt::BackgroundRole) {
+        return grid[row][column].getColor();
+    }
+    return QVariant();
 }
 
 #endif //WIELOSKALOWE_GRIDMODEL_H

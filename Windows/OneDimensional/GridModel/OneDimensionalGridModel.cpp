@@ -5,7 +5,7 @@
 void OneDimensionalGridModel::setCellCount(unsigned short cellCount, int highStateCount) {
     beginResetModel();
     grid.reset(1, cellCount);
-    grid.setRandomHighStates(highStateCount);
+    grid.changeRandomCellStates(highStateCount);
     endResetModel();
 }
 
@@ -38,16 +38,6 @@ void OneDimensionalGridModel::simulate() {
 
 bool OneDimensionalGridModel::isCellSelectionAvailable() {
     return grid.getHeight() == 1;
-}
-
-QVariant OneDimensionalGridModel::data(const QModelIndex &index, int role) const {
-    int row = index.row();
-    int column = index.column();
-
-    if (role == Qt::BackgroundRole) {
-        return grid[row][column].getColor();
-    }
-    return QVariant();
 }
 
 void OneDimensionalGridModel::setRule(unsigned short r) {
