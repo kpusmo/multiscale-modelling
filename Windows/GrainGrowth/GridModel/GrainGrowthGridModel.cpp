@@ -102,11 +102,11 @@ void GrainGrowthGridModel::setHomogeneousComposition(int rows, int columns) {
     double deltaColumns = 1. * grid.getWidth() / columns;
     if (deltaRows == 0) {
         deltaRows = 1;
-        qDebug() << "Grid is too small for " << rows << " rows. " << grid.getWidth() << " rows set.";
+        qDebug() << "Grid is too small for" << rows << "rows." << grid.getWidth() << "rows set.";
     }
     if (deltaColumns == 0) {
         deltaRows = 1;
-        qDebug() << "Grid is too small for " << columns << " columns. " << grid.getHeight() << " columns set.";
+        qDebug() << "Grid is too small for" << columns << "columns." << grid.getHeight() << "columns set.";
     }
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < columns; ++j) {
@@ -123,57 +123,65 @@ void GrainGrowthGridModel::setRandomComposition(int count, int radius) {
     auto minDimension = std::min(grid.getWidth(), grid.getHeight());
     if (radius >= minDimension) {
         radius = minDimension - 1;
-        qDebug() << "Radius too large; using radius: " << radius;
+        qDebug() << "Radius too large; using radius:" << radius;
     }
+    bool **map = getGridMapForRandomComposition(radius);
     std::random_device rd;
     std::mt19937 generator(rd());
     for (int counter = 0; counter < count; ++counter) {
-        auto availableCells = cellsAvailableByRadius(radius);
+        std::vector<std::pair<int, int>> availableCells = getCoordinatesOfAvailableCells(map);
         if (availableCells.empty()) {
             qDebug() << "Too many grains requested. Set" << counter << "grains";
             break;
         }
+        //change state of random correct cell
         std::uniform_int_distribution<> distribution(0, static_cast<int>(availableCells.size() - 1));
-        auto rand = distribution(generator);
-        availableCells[rand]->changeState();
+        auto coordinates = availableCells[distribution(generator)];
+        grid[coordinates.first][coordinates.second].changeState();
+        //update map - set chosen cell and its neighbours as unavailable
+        markCellWithNeighboursAsUnavailable(coordinates.first, coordinates.second, map, radius);
     }
-}
-
-std::vector<GrainCell *> GrainGrowthGridModel::cellsAvailableByRadius(int radius) {
-    std::vector<GrainCell *> availableCells;
-    auto map = new bool *[grid.getHeight()];
-    for (int i = 0; i < grid.getHeight(); ++i) {
-        map[i] = new bool [grid.getWidth()];
-        for (int j = 0; j < grid.getWidth(); ++j) {
-            map[i][j] = grid[i][j].getState() == 0;
-        }
-    }
-    for (int i = 0; i < grid.getHeight(); ++i) {
-        for (int j = 0; j < grid.getWidth(); ++j) {
-            if (grid[i][j].getState() != 0) {
-                markNeighboursAsUnavailable(i, j, map, radius);
-            }
-        }
-    }
-    for (int i = 0; i < grid.getHeight(); ++i) {
-        for (int j = 0; j < grid.getWidth(); ++j) {
-            if (map[i][j]) {
-                availableCells.push_back(&grid[i][j]);
-            }
-        }
-    }
+    //delete map
     for (int i = 0; i < grid.getHeight(); ++i) {
         delete[] map[i];
     }
     delete[] map;
-    return availableCells;
 }
 
-void GrainGrowthGridModel::markNeighboursAsUnavailable(int a, int b, bool **map, int radius) {
+bool **GrainGrowthGridModel::getGridMapForRandomComposition(int radius) {
+    auto map = new bool *[grid.getHeight()];
+    for (int i = 0; i < grid.getHeight(); ++i) {
+        map[i] = new bool [grid.getWidth()];
+    }
+    //disable neighbours of non-zero cells
+    for (int i = 0; i < grid.getHeight(); ++i) {
+        for (int j = 0; j < grid.getWidth(); ++j) {
+            map[i][j] = grid[i][j].getState() == 0;
+            if (!map[i][j]) {
+                markCellWithNeighboursAsUnavailable(i, j, map, radius);
+            }
+        }
+    }
+    return map;
+}
+
+void GrainGrowthGridModel::markCellWithNeighboursAsUnavailable(int a, int b, bool **map, int radius) {
     for (int i = std::max(0, a - radius); i <= std::min(a + radius, grid.getHeight() - 1); ++i) {
         auto delta = std::abs(i - a);
         for (int j = std::max(0, b - radius + delta); j <= std::min(b + radius - delta, grid.getWidth() - 1); ++j) {
             map[i][j] = false;
         }
     }
+}
+
+std::vector<std::pair<int, int>> GrainGrowthGridModel::getCoordinatesOfAvailableCells(bool **map) {
+    std::vector<std::pair<int, int>> availableCells;
+    for (int i = 0; i < grid.getHeight(); ++i) {
+        for (int j = 0; j < grid.getWidth(); ++j) {
+            if (map[i][j]) {
+                availableCells.emplace_back(i, j);
+            }
+        }
+    }
+    return availableCells;
 }
