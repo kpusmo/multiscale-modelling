@@ -5,6 +5,8 @@
 #include <AbstractGridModel/GridModel.h>
 #include <Cells/GrainCell.h>
 #include <QTimer>
+#include <Grid/Neighbourhood.h>
+#include <memory>
 
 class GrainGrowthGridModel : public GridModel<GrainCell> {
 Q_OBJECT
@@ -20,6 +22,8 @@ public:
     void simulate() override;
 
     void drawGrid(unsigned short height, unsigned short width);
+
+    void setNeighbourhood(const Neighbourhood &newNeighbourhood);
 
     /**
      * Sets state of count cells as non-zero. If positive radius provided, there will not be more than one non-zero cell in given radius.
@@ -47,6 +51,9 @@ protected:
     Grid<GrainCell> previousState;
     bool isRunning{false};
     QTimer *timer{nullptr};
+    Neighbourhood neighbourhood{Neighbourhood::VON_NEUMNANN};
+
+    typedef std::shared_ptr<std::map<GrainCell, unsigned short>> GrainCellMapPointer;
 
     bool isCellSelectionAvailable() override;
 
@@ -59,6 +66,8 @@ protected:
     std::vector<std::pair<int, int>> getCoordinatesOfAvailableCells(bool **map);
 
     bool **getGridMapForRandomComposition(int radius);
+
+    GrainCellMapPointer getNeighbourStateMap(int i, int j) const;
 };
 
 

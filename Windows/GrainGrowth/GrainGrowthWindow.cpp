@@ -4,21 +4,9 @@
 
 GrainGrowthWindow::GrainGrowthWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::GrainGrowthWindow) {
     ui->setupUi(this);
-    ui->celluralTable->setModel(&gridModel);
-    ui->celluralTable->setFocusPolicy(Qt::NoFocus);
-    ui->celluralTable->setSelectionMode(QAbstractItemView::NoSelection);
-    connect(ui->celluralTable, SIGNAL(clicked(const QModelIndex &)), &gridModel, SLOT(onCellSelected(const QModelIndex &)));
-    connect(ui->startingCompositionSelect, SIGNAL(currentIndexChanged(int)), this, SLOT(onStartingCompositionChanged(int)));
-    ui->celluralTable->verticalHeader()->setVisible(false);
-    ui->celluralTable->horizontalHeader()->setVisible(false);
-
-    for (int i = 0; i < ui->stackedWidget->count(); ++i) {
-        QSizePolicy::Policy policy = QSizePolicy::Ignored;
-        if (i == ui->stackedWidget->currentIndex()) {
-            policy = QSizePolicy::Expanding;
-        }
-        ui->stackedWidget->widget(i)->setSizePolicy(policy, policy);
-    }
+    initCelluralTable();
+    initCompositionInputGroup();
+    initNeighbourhoodInputGroup();
 }
 
 GrainGrowthWindow::~GrainGrowthWindow() {
@@ -51,11 +39,77 @@ void GrainGrowthWindow::on_drawButton_clicked() {
 
 void GrainGrowthWindow::on_simulateButton_clicked() {
     auto periodicalBc = ui->periodicalBcRadioButton->isChecked();
+    auto neighbourhood = getChosenNeighbourhood();
+    gridModel.setNeighbourhood(neighbourhood);
     gridModel.startSimulation(periodicalBc ? BoundaryCondition::PERIODICAL : BoundaryCondition::ABSORBING);
 }
 
+Neighbourhood GrainGrowthWindow::getChosenNeighbourhood() {
+    auto neighbourhoodOption = ui->neighbourhoodSelect->currentText();
+    Neighbourhood neighbourhood = Neighbourhood::VON_NEUMNANN;
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    if (neighbourhoodOption == "Heksagonalne") {
+        auto index = ui->hexagonalSelect->currentIndex();
+        auto type = ui->hexagonalSelect->currentText();
+        if (type == "Losowo") {
+            std::uniform_int_distribution<> distribution(0, 1);
+            index = distribution(generator);
+        }
+        neighbourhood = HEXAGONALS[index];
+    } else if (neighbourhoodOption == "Pentagonalne") {
+        auto index = ui->pentagonalSelect->currentIndex();
+        auto type = ui->pentagonalSelect->currentText();
+        if (type == "Losowe") {
+            std::uniform_int_distribution<> distribution(0, 3);
+            index = distribution(generator);
+        }
+        neighbourhood = PENTAGONALS[index];
+    } else if (neighbourhoodOption == "Moore'a") {
+        neighbourhood = Neighbourhood::MOORE;
+    }
+    return neighbourhood;
+}
+
 void GrainGrowthWindow::onStartingCompositionChanged(int currentIndex) {
-    ui->stackedWidget->currentWidget()->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    ui->stackedWidget->setCurrentIndex(currentIndex);
-    ui->stackedWidget->currentWidget()->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    ui->compositionInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    ui->compositionInputGroup->setCurrentIndex(currentIndex);
+    ui->compositionInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+}
+
+void GrainGrowthWindow::initCompositionInputGroup() {
+    connect(ui->startingCompositionSelect, SIGNAL(currentIndexChanged(int)), this, SLOT(onStartingCompositionChanged(int)));
+    for (int i = 0; i < ui->compositionInputGroup->count(); ++i) {
+        QSizePolicy::Policy policy = QSizePolicy::Ignored;
+        if (i == ui->compositionInputGroup->currentIndex()) {
+            policy = QSizePolicy::Expanding;
+        }
+        ui->compositionInputGroup->widget(i)->setSizePolicy(policy, policy);
+    }
+}
+
+void GrainGrowthWindow::initNeighbourhoodInputGroup() {
+    connect(ui->neighbourhoodSelect, SIGNAL(currentIndexChanged(int)), this, SLOT(onNeighbourhoodChanged(int)));
+    for (int i = 0; i < ui->neighbourhoodInputGroup->count(); ++i) {
+        QSizePolicy::Policy policy = QSizePolicy::Ignored;
+        if (i == ui->neighbourhoodInputGroup->currentIndex()) {
+            policy = QSizePolicy::Expanding;
+        }
+        ui->neighbourhoodInputGroup->widget(i)->setSizePolicy(policy, policy);
+    }
+}
+
+void GrainGrowthWindow::initCelluralTable() {
+    ui->celluralTable->setModel(&gridModel);
+    ui->celluralTable->setFocusPolicy(Qt::NoFocus);
+    ui->celluralTable->setSelectionMode(QAbstractItemView::NoSelection);
+    connect(ui->celluralTable, SIGNAL(clicked(const QModelIndex &)), &gridModel, SLOT(onCellSelected(const QModelIndex &)));
+    ui->celluralTable->verticalHeader()->setVisible(false);
+    ui->celluralTable->horizontalHeader()->setVisible(false);
+}
+
+void GrainGrowthWindow::onNeighbourhoodChanged(int currentIndex) {
+    ui->neighbourhoodInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    ui->neighbourhoodInputGroup->setCurrentIndex(currentIndex);
+    ui->neighbourhoodInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }

@@ -23,9 +23,19 @@ public slots:
 
     void onStartingCompositionChanged(int currentIndex);
 
+    void onNeighbourhoodChanged(int currentIndex);
+
 private:
     Ui::GrainGrowthWindow *ui;
     GrainGrowthGridModel gridModel;
+
+    void initCompositionInputGroup();
+
+    void initNeighbourhoodInputGroup();
+
+    void initCelluralTable();
+
+    Neighbourhood getChosenNeighbourhood();
 };
 
 #endif // GRAINGROWTHWINDOW_H

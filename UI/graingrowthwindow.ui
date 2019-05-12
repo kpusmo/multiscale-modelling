@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>819</width>
+    <height>779</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -64,7 +64,7 @@
        <widget class="QComboBox" name="startingCompositionSelect">
         <item>
          <property name="text">
-          <string>Ręczny</string>
+          <string>Losowy z promieniem</string>
          </property>
         </item>
         <item>
@@ -74,7 +74,7 @@
         </item>
         <item>
          <property name="text">
-          <string>Losowy z promieniem</string>
+          <string>Ręczny</string>
          </property>
         </item>
         <item>
@@ -118,32 +118,10 @@
        </widget>
       </item>
       <item row="5" column="0" colspan="2">
-       <widget class="QStackedWidget" name="stackedWidget">
+       <widget class="QStackedWidget" name="compositionInputGroup">
         <property name="currentIndex">
          <number>0</number>
         </property>
-        <widget class="QWidget" name="emptyPage"/>
-        <widget class="QWidget" name="randomPage">
-         <layout class="QFormLayout" name="formLayout_3">
-          <item row="0" column="0" colspan="2">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Liczba ziaren</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0" colspan="2">
-           <widget class="QSpinBox" name="randomGrainCountInput">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>20000</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
         <widget class="QWidget" name="randomWithRadiusPage">
          <layout class="QFormLayout" name="formLayout_4">
           <item row="0" column="0" colspan="2">
@@ -188,6 +166,28 @@
           </item>
          </layout>
         </widget>
+        <widget class="QWidget" name="randomPage">
+         <layout class="QFormLayout" name="formLayout_3">
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Liczba ziaren</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QSpinBox" name="randomGrainCountInput">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>20000</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="emptyPage"/>
         <widget class="QWidget" name="homogeneousPage">
          <layout class="QFormLayout" name="formLayout_5">
           <item row="0" column="0" colspan="2">
@@ -228,7 +228,117 @@
         </widget>
        </widget>
       </item>
+      <item row="10" column="0" colspan="2">
+       <widget class="QComboBox" name="neighbourhoodSelect">
+        <item>
+         <property name="text">
+          <string>von Neumanna</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Moore'a</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Pentagonalne</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Heksagonalne</string>
+         </property>
+        </item>
+       </widget>
+      </item>
       <item row="9" column="0" colspan="2">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Sąsiedztwo</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0" colspan="2">
+       <widget class="QStackedWidget" name="neighbourhoodInputGroup">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="vonNeumannPage">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+        <widget class="QWidget" name="moorePage">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+        <widget class="QWidget" name="pentagonalPage">
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="0">
+           <widget class="QComboBox" name="pentagonalSelect">
+            <item>
+             <property name="text">
+              <string>Górne</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Prawe</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Dolne</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Lewe</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Losowe</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="hexagonalPage">
+         <layout class="QFormLayout" name="formLayout_7">
+          <item row="1" column="0" colspan="2">
+           <widget class="QComboBox" name="hexagonalSelect">
+            <item>
+             <property name="text">
+              <string>Od lewej</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Od prawej</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Losowo</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+      <item row="13" column="0" colspan="2">
        <widget class="QPushButton" name="simulateButton">
         <property name="text">
          <string>Rozpocznij symulację</string>
@@ -244,7 +354,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>819</width>
      <height>22</height>
     </rect>
    </property>
@@ -254,7 +364,16 @@
  <tabstops>
   <tabstop>widthInput</tabstop>
   <tabstop>heightInput</tabstop>
+  <tabstop>startingCompositionSelect</tabstop>
+  <tabstop>randomGrainCountInput</tabstop>
+  <tabstop>randomWithRadiusGrainCountInput</tabstop>
+  <tabstop>radiusInput</tabstop>
+  <tabstop>grainColumnsInput</tabstop>
+  <tabstop>grainRowsInput</tabstop>
   <tabstop>drawButton</tabstop>
+  <tabstop>periodicalBcRadioButton</tabstop>
+  <tabstop>absorbingBcRadioButton</tabstop>
+  <tabstop>neighbourhoodSelect</tabstop>
   <tabstop>simulateButton</tabstop>
   <tabstop>celluralTable</tabstop>
  </tabstops>

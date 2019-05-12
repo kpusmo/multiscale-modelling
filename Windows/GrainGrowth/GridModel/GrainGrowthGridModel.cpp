@@ -47,9 +47,9 @@ void GrainGrowthGridModel::simulate() {
             if (grid[i][j].getState() != 0) {
                 continue;
             }
-            touched = true;
             auto mostFrequentNeighbourCell = findMostFrequentNeighbourCell(i, j);
             if (mostFrequentNeighbourCell != nullptr) {
+                touched = true;
                 grid[i][j] = *mostFrequentNeighbourCell;
             }
         }
@@ -61,15 +61,10 @@ void GrainGrowthGridModel::simulate() {
 }
 
 const GrainCell *GrainGrowthGridModel::findMostFrequentNeighbourCell(int i, int j) const {
-    std::map<GrainCell, unsigned short> neighbourStateMap;
-    neighbourStateMap[previousState[i][j - 1]]++;
-    neighbourStateMap[previousState[i][j + 1]]++;
-    neighbourStateMap[previousState[i - 1][j]]++;
-    neighbourStateMap[previousState[i + 1][j]]++;
-
+    auto neighbourStateMap = getNeighbourStateMap(i, j);
     unsigned short maxValue = 0;
     const GrainCell *max = nullptr;
-    for (const auto &it : neighbourStateMap) {
+    for (const auto &it : *neighbourStateMap) {
         if (it.second > maxValue && it.first.getState() != 0) {
             max = &(it.first);
             maxValue = it.second;
@@ -129,7 +124,7 @@ void GrainGrowthGridModel::setRandomComposition(int count, int radius) {
     std::random_device rd;
     std::mt19937 generator(rd());
     for (int counter = 0; counter < count; ++counter) {
-        std::vector<std::pair<int, int>> availableCells = getCoordinatesOfAvailableCells(map);
+        auto availableCells = getCoordinatesOfAvailableCells(map);
         if (availableCells.empty()) {
             qDebug() << "Too many grains requested. Set" << counter << "grains";
             break;
@@ -184,4 +179,77 @@ std::vector<std::pair<int, int>> GrainGrowthGridModel::getCoordinatesOfAvailable
         }
     }
     return availableCells;
+}
+
+void GrainGrowthGridModel::setNeighbourhood(const Neighbourhood &newNeighbourhood) {
+    neighbourhood = newNeighbourhood;
+}
+
+GrainGrowthGridModel::GrainCellMapPointer GrainGrowthGridModel::getNeighbourStateMap(int i, int j) const {
+    GrainCellMapPointer neighbourStateMap(new std::map<GrainCell, unsigned short>);
+    switch (neighbourhood) {
+        case Neighbourhood::VON_NEUMNANN:
+            (*neighbourStateMap)[previousState[i][j - 1]]++;
+            (*neighbourStateMap)[previousState[i][j + 1]]++;
+            (*neighbourStateMap)[previousState[i - 1][j]]++;
+            (*neighbourStateMap)[previousState[i + 1][j]]++;
+            break;
+        case Neighbourhood::MOORE:
+            for (int a = i - 1; a < i + 2; ++a) {
+                for (int b = j - 1; b < j + 2; ++b) {
+                    (*neighbourStateMap)[previousState[a][b]]++;
+                }
+            }
+            (*neighbourStateMap)[previousState[i][j]]--;
+            break;
+        case Neighbourhood::HEXAGONAL_LEFT_TOP:
+            for (int a = i - 1; a < i + 2; ++a) {
+                for (int b = j - 1; b < j + 2; ++b) {
+                    (*neighbourStateMap)[previousState[a][b]]++;
+                }
+            }
+            (*neighbourStateMap)[previousState[i][j]]--;
+            (*neighbourStateMap)[previousState[i + 1][j - 1]]--;
+            (*neighbourStateMap)[previousState[i - 1][j + 1]]--;
+            break;
+        case Neighbourhood::HEXAGONAL_RIGHT_TOP:
+            for (int a = i - 1; a < i + 2; ++a) {
+                for (int b = j - 1; b < j + 2; ++b) {
+                    (*neighbourStateMap)[previousState[a][b]]++;
+                }
+            }
+            (*neighbourStateMap)[previousState[i][j]]--;
+            (*neighbourStateMap)[previousState[i - 1][j - 1]]--;
+            (*neighbourStateMap)[previousState[i + 1][j + 1]]--;
+            break;
+        case Neighbourhood::PENTAGONAL_TOP:
+            (*neighbourStateMap)[previousState[i][j - 1]]++;
+            (*neighbourStateMap)[previousState[i][j + 1]]++;
+            (*neighbourStateMap)[previousState[i - 1][j - 1]]++;
+            (*neighbourStateMap)[previousState[i - 1][j]]++;
+            (*neighbourStateMap)[previousState[i - 1][j + 1]]++;
+            break;
+        case Neighbourhood::PENTAGONAL_RIGHT:
+            (*neighbourStateMap)[previousState[i - 1][j]]++;
+            (*neighbourStateMap)[previousState[i + 1][j]]++;
+            (*neighbourStateMap)[previousState[i - 1][j + 1]]++;
+            (*neighbourStateMap)[previousState[i][j + 1]]++;
+            (*neighbourStateMap)[previousState[i + 1][j + 1]]++;
+            break;
+        case Neighbourhood::PENTAGONAL_BOTTOM:
+            (*neighbourStateMap)[previousState[i][j - 1]]++;
+            (*neighbourStateMap)[previousState[i][j + 1]]++;
+            (*neighbourStateMap)[previousState[i + 1][j - 1]]++;
+            (*neighbourStateMap)[previousState[i + 1][j]]++;
+            (*neighbourStateMap)[previousState[i + 1][j + 1]]++;
+            break;
+        case Neighbourhood::PENTAGONAL_LEFT:
+            (*neighbourStateMap)[previousState[i - 1][j]]++;
+            (*neighbourStateMap)[previousState[i + 1][j]]++;
+            (*neighbourStateMap)[previousState[i - 1][j - 1]]++;
+            (*neighbourStateMap)[previousState[i][j - 1]]++;
+            (*neighbourStateMap)[previousState[i + 1][j - 1]]++;
+            break;
+    }
+    return neighbourStateMap;
 }
