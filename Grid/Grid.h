@@ -22,7 +22,7 @@ public:
 
     void reset(unsigned short h, unsigned short w);
 
-    void setHeight(unsigned short h);
+    void addRows(int count);
 
     unsigned short getHeight() const;
 
@@ -33,7 +33,7 @@ public:
     void setBoundaryCondition(const BoundaryCondition &newBc);
 
 protected:
-    inline short getIndex(short i) const;
+    inline short getPeriodicalBoundaryConditionIndex(short i) const;
 
     BoundaryCondition boundaryCondition{BoundaryCondition::PERIODICAL};
     unsigned short height{0};
@@ -49,14 +49,14 @@ Grid<T>::Grid(unsigned short h, unsigned short w) : height(h), width(w) {
 
 template<typename T>
 Row<T> &Grid<T>::operator[](short i) {
-    return grid[getIndex(i)];
+    return grid[getPeriodicalBoundaryConditionIndex(i)];
 }
 
 template<typename T>
 const Row<T> &Grid<T>::operator[](short i) const {
     switch (boundaryCondition) {
         case BoundaryCondition::PERIODICAL:
-            return grid[getIndex(i)];
+            return grid[getPeriodicalBoundaryConditionIndex(i)];
         case BoundaryCondition::ABSORBING:
             if (i < 0 || i >= height) {
                 static auto def = Row<T>(1);
@@ -67,7 +67,7 @@ const Row<T> &Grid<T>::operator[](short i) const {
 }
 
 template<typename T>
-short Grid<T>::getIndex(short i) const {
+short Grid<T>::getPeriodicalBoundaryConditionIndex(short i) const {
     int index = abs(i) % height;
     return static_cast<short>(i >= 0 || index == 0 ? index : height - index);
 }
@@ -77,7 +77,7 @@ void Grid<T>::reset(unsigned short h, unsigned short w) {
     height = h;
     width = w;
     grid.clear();
-    grid.assign(h, Row<T>(w));
+    grid.assign(h, Row<T>(w, boundaryCondition));
 }
 
 template<typename T>
@@ -91,18 +91,16 @@ unsigned short Grid<T>::getWidth() const {
 }
 
 template<typename T>
-void Grid<T>::setHeight(unsigned short h) {
-    if (height > 1) {
-        grid.erase(grid.begin() + 1, grid.end());
-    }
-    height = h;
-    grid.insert(grid.begin() + 1, static_cast<unsigned long>(height - 1), Row<T>(width));
+void Grid<T>::addRows(int count) {
+    grid.insert(grid.begin() + height, static_cast<unsigned long>(count), Row<T>(width, boundaryCondition));
+    height += count;
 }
 
 template<typename T>
 void Grid<T>::changeRandomCellStates(int count) {
-    if (count > width) {
-        count = width;
+    auto size = width * height;
+    if (count > size) {
+        count = size;
     }
     std::random_device rd;
     std::mt19937 generator(rd());
@@ -120,8 +118,8 @@ void Grid<T>::changeRandomCellStates(int count) {
 template<typename T>
 void Grid<T>::setBoundaryCondition(const BoundaryCondition &newBc) {
     boundaryCondition = newBc;
-    for (auto &it : grid) {
-        it.setBoundaryCondition(newBc);
+    for (auto &row : grid) {
+        row.setBoundaryCondition(newBc);
     }
 }
 

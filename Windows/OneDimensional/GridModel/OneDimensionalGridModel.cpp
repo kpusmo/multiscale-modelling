@@ -9,12 +9,12 @@ void OneDimensionalGridModel::setCellCount(unsigned short cellCount, int highSta
     endResetModel();
 }
 
-void OneDimensionalGridModel::setSimulationSteps(unsigned short rows) {
-    if (grid.getWidth() == 0) {
+void OneDimensionalGridModel::setSimulationSteps(unsigned short simulationSteps) {
+    if (grid.getHeight() != 1) { //can set simulation steps only after drawing first row
         return;
     }
     beginResetModel();
-    grid.setHeight(static_cast<unsigned short>(rows + 1));
+    grid.addRows(simulationSteps);
     endResetModel();
 }
 
@@ -23,16 +23,16 @@ void OneDimensionalGridModel::simulate() {
         return;
     }
     for (int stepCounter = 0; stepCounter < grid.getHeight() - 1; ++stepCounter) {
-        for (unsigned short cellCounter = 0; cellCounter < grid.getWidth(); ++cellCounter) {
-            int cellsMask = grid[stepCounter][cellCounter + 1].getState();
-            cellsMask += grid[stepCounter][cellCounter].getState() << 1;
-            cellsMask += grid[stepCounter][cellCounter - 1].getState() << 2;
-            unsigned short ruleMask = rule >> cellsMask;
-            grid[stepCounter + 1][cellCounter].setState(static_cast<unsigned short>(ruleMask & 1));
+        for (auto i = 0; i < grid.getWidth(); ++i) {
+            int cellsMask = grid[stepCounter][i + 1].getState();
+            cellsMask += grid[stepCounter][i].getState() << 1;
+            cellsMask += grid[stepCounter][i - 1].getState() << 2;
+            auto ruleMask = rule >> cellsMask;
+            grid[stepCounter + 1][i].setState(static_cast<unsigned short>(ruleMask & 1));
         }
     }
     QModelIndex topLeft = createIndex(1, 0);
-    QModelIndex bottomRight = createIndex(grid.getHeight(), grid.getWidth());
+    QModelIndex bottomRight = createIndex(grid.getHeight() - 1, grid.getWidth() - 1);
     emit dataChanged(topLeft, bottomRight);
 }
 

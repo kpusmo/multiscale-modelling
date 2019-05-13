@@ -10,7 +10,7 @@ Q_OBJECT
 public:
     void setCellCount(unsigned short cellCount, int highStateCount = 10);
 
-    void setSimulationSteps(unsigned short rows);
+    void setSimulationSteps(unsigned short simulationSteps);
 
     void setRule(unsigned short rule);
 

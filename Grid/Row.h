@@ -9,27 +9,26 @@
 template<typename T>
 class Row {
 public:
-    explicit Row(unsigned short l);
+    explicit Row(unsigned short l, const BoundaryCondition &bc = BoundaryCondition::PERIODICAL);
 
     Row(const Row &toCopy);
 
     T &operator[](short i);
 
-    T operator[](short i) const;
+    const T &operator[](short i) const;
 
     void setBoundaryCondition(const BoundaryCondition &newBc);
 
 protected:
     BoundaryCondition boundaryCondition{BoundaryCondition::PERIODICAL};
-
-    inline short getIndex(short i) const;
-
     unsigned short length;
     std::vector<T> row;
+
+    inline short getPeriodicalBoundaryConditionIndex(short i) const;
 };
 
 template<typename T>
-Row<T>::Row(unsigned short l) : length(l) {
+Row<T>::Row(unsigned short l, const BoundaryCondition &bc) : length(l), boundaryCondition(bc) {
     row.assign(l, T());
 }
 
@@ -45,14 +44,14 @@ Row<T>::Row(const Row &toCopy) {
 
 template<typename T>
 T &Row<T>::operator[](short i) {
-    return row[getIndex(i)];
+    return row[getPeriodicalBoundaryConditionIndex(i)];
 }
 
 template<typename T>
-T Row<T>::operator[](short i) const {
+const T &Row<T>::operator[](short i) const {
     switch (boundaryCondition) {
         case BoundaryCondition::PERIODICAL:
-            return row[getIndex(i)];
+            return row[getPeriodicalBoundaryConditionIndex(i)];
         case BoundaryCondition::ABSORBING:
             if (i < 0 || i >= length) {
                 static auto def = T();
@@ -63,7 +62,7 @@ T Row<T>::operator[](short i) const {
 }
 
 template<typename T>
-short Row<T>::getIndex(short i) const {
+short Row<T>::getPeriodicalBoundaryConditionIndex(short i) const {
     int index = abs(i) % length;
     return static_cast<short>(i >= 0 || index == 0 ? index : length - index);
 }

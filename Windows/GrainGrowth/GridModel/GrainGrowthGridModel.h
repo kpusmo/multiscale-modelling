@@ -53,7 +53,8 @@ protected:
     QTimer *timer{nullptr};
     Neighbourhood neighbourhood{Neighbourhood::VON_NEUMNANN};
 
-    typedef std::shared_ptr<std::map<GrainCell, unsigned short>> GrainCellMapPointer;
+    typedef std::map<GrainCell, unsigned short> GrainCellMap;
+    typedef std::shared_ptr<GrainCellMap> GrainCellMapPointer;
 
     bool isCellSelectionAvailable() override;
 

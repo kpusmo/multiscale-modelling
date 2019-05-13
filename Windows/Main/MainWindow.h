@@ -20,7 +20,9 @@ public:
 
 private slots:
     void on_oneDimensionalModeButton_clicked();
+
     void on_gameModeButton_clicked();
+
     void on_grainGrowthButton_clicked();
 
 private:

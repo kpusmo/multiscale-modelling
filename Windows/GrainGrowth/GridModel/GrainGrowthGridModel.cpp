@@ -61,13 +61,13 @@ void GrainGrowthGridModel::simulate() {
 }
 
 const GrainCell *GrainGrowthGridModel::findMostFrequentNeighbourCell(int i, int j) const {
-    auto neighbourStateMap = getNeighbourStateMap(i, j);
+    auto neighbourStateMapPtr = getNeighbourStateMap(i, j);
     unsigned short maxValue = 0;
     const GrainCell *max = nullptr;
-    for (const auto &it : *neighbourStateMap) {
-        if (it.second > maxValue && it.first.getState() != 0) {
-            max = &(it.first);
-            maxValue = it.second;
+    for (const auto &mapItem : *neighbourStateMapPtr) {
+        if (mapItem.second > maxValue && mapItem.first.getState() != 0) {
+            max = &(mapItem.first);
+            maxValue = mapItem.second;
         }
     }
     return max;
@@ -123,15 +123,15 @@ void GrainGrowthGridModel::setRandomComposition(int count, int radius) {
     bool **map = getGridMapForRandomComposition(radius);
     std::random_device rd;
     std::mt19937 generator(rd());
-    for (int counter = 0; counter < count; ++counter) {
-        auto availableCells = getCoordinatesOfAvailableCells(map);
-        if (availableCells.empty()) {
-            qDebug() << "Too many grains requested. Set" << counter << "grains";
+    for (int i = 0; i < count; ++i) {
+        auto availableCellsCoordinates = getCoordinatesOfAvailableCells(map);
+        if (availableCellsCoordinates.empty()) {
+            qDebug() << "Too many grains requested. Set" << i << "grains";
             break;
         }
         //change state of random correct cell
-        std::uniform_int_distribution<> distribution(0, static_cast<int>(availableCells.size() - 1));
-        auto coordinates = availableCells[distribution(generator)];
+        std::uniform_int_distribution<> distribution(0, static_cast<int>(availableCellsCoordinates.size() - 1));
+        auto coordinates = availableCellsCoordinates[distribution(generator)];
         grid[coordinates.first][coordinates.second].changeState();
         //update map - set chosen cell and its neighbours as unavailable
         markCellWithNeighboursAsUnavailable(coordinates.first, coordinates.second, map, radius);
@@ -186,7 +186,7 @@ void GrainGrowthGridModel::setNeighbourhood(const Neighbourhood &newNeighbourhoo
 }
 
 GrainGrowthGridModel::GrainCellMapPointer GrainGrowthGridModel::getNeighbourStateMap(int i, int j) const {
-    GrainCellMapPointer neighbourStateMap(new std::map<GrainCell, unsigned short>);
+    GrainCellMapPointer neighbourStateMap(new GrainCellMap);
     switch (neighbourhood) {
         case Neighbourhood::VON_NEUMNANN:
             (*neighbourStateMap)[previousState[i][j - 1]]++;

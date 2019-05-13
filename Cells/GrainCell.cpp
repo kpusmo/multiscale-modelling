@@ -28,7 +28,7 @@ QColor GrainCell::getColor() const {
 
 GrainCell &GrainCell::operator=(const GrainCell &other) {
     state = other.state;
-    color = QColor(other.color.red(), other.color.green(), other.color.blue());
+    color = QColor(other.color);
     return *this;
 }
 

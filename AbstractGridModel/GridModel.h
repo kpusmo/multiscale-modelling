@@ -6,6 +6,7 @@
 
 #include "BaseGridModel.h"
 #include <QDebug>
+#include <QSize>
 #include "Grid/Grid.h"
 
 template<typename T>
@@ -23,9 +24,9 @@ public slots:
     void onCellSelected(const QModelIndex &index) override;
 
 protected:
-    virtual bool isCellSelectionAvailable() = 0;
-
     Grid<T> grid;
+
+    virtual bool isCellSelectionAvailable() = 0;
 };
 
 template<typename T>

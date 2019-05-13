@@ -16,37 +16,6 @@ void GameGridModel::drawGrid(unsigned short height, unsigned short width, const 
     endResetModel();
 }
 
-void GameGridModel::setStartingComposition(const QString &startingComposition) {
-    std::random_device rd;
-    std::mt19937 generator(rd());
-    std::uniform_int_distribution<> distributionWidth(0, grid.getWidth() - 1);
-    std::uniform_int_distribution<> distributionHeight(0, grid.getHeight() - 1);
-    auto i = distributionHeight(generator);
-    auto j = distributionWidth(generator);
-    if (startingComposition == "Niezmienny") {
-        grid[i][j].setState(1);
-        grid[i + 1][j + 1].setState(1);
-        grid[i + 1][j + 2].setState(1);
-        grid[i][j + 3].setState(1);
-        grid[i - 1][j + 2].setState(1);
-        grid[i - 1][j + 1].setState(1);
-    } else if (startingComposition == "Glider") {
-        grid[i][j].setState(1);
-        grid[i][j + 1].setState(1);
-        grid[i - 1][j].setState(1);
-        grid[i - 1][j - 1].setState(1);
-        grid[i - 2][j + 1].setState(1);
-    } else if (startingComposition == "Oscylator") {
-        grid[i][j].setState(1);
-        grid[i + 1][j].setState(1);
-        grid[i + 2][j].setState(1);
-    } else if (startingComposition == "Losowy") {
-//        for (int k = 0; k < 20; ++k) {
-        grid.changeRandomCellStates(i * j);
-//        }
-    }
-}
-
 void GameGridModel::startSimulation() {
     if (isRunning) {
         return;
@@ -78,6 +47,7 @@ bool GameGridModel::isCellSelectionAvailable() {
 
 unsigned GameGridModel::countLivingSurroundingCells(int a, int b) {
     unsigned count = 0;
+    //Moore neighbourhood
     for (int i = a - 1; i < a + 2; ++i) {
         for (int j = b - 1; j < b + 2; ++j) {
             count += previousState[i][j].getState();
@@ -96,4 +66,33 @@ void GameGridModel::nextStep() {
 void GameGridModel::stopSimulation() {
     timer->stop();
     isRunning = false;
+}
+
+void GameGridModel::setStartingComposition(const QString &startingComposition) {
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    std::uniform_int_distribution<> distributionWidth(0, grid.getWidth() - 1);
+    std::uniform_int_distribution<> distributionHeight(0, grid.getHeight() - 1);
+    auto i = distributionHeight(generator);
+    auto j = distributionWidth(generator);
+    if (startingComposition == "Niezmienny") {
+        grid[i][j].setState(1);
+        grid[i + 1][j + 1].setState(1);
+        grid[i + 1][j + 2].setState(1);
+        grid[i][j + 3].setState(1);
+        grid[i - 1][j + 2].setState(1);
+        grid[i - 1][j + 1].setState(1);
+    } else if (startingComposition == "Glider") {
+        grid[i][j].setState(1);
+        grid[i][j + 1].setState(1);
+        grid[i - 1][j].setState(1);
+        grid[i - 1][j - 1].setState(1);
+        grid[i - 2][j + 1].setState(1);
+    } else if (startingComposition == "Oscylator") {
+        grid[i][j].setState(1);
+        grid[i + 1][j].setState(1);
+        grid[i + 2][j].setState(1);
+    } else if (startingComposition == "Losowy") {
+        grid.changeRandomCellStates(i * j);
+    }
 }

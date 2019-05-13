@@ -9,7 +9,7 @@
 class GameGridModel : public GridModel<BinaryCell> {
 Q_OBJECT
 public:
-    static const unsigned TIMER_INTERVAL{500}; //milliseconds
+    static const unsigned TIMER_INTERVAL{200}; //milliseconds
 
     GameGridModel();
 
@@ -25,15 +25,15 @@ public slots:
     void nextStep();
 
 protected:
+    Grid<BinaryCell> previousState;
+    bool isRunning{false};
+    QTimer *timer{nullptr};
+
     bool isCellSelectionAvailable() override;
 
     unsigned countLivingSurroundingCells(int i, int j);
 
     void setStartingComposition(const QString &startingComposition);
-
-    Grid<BinaryCell> previousState;
-    bool isRunning{false};
-    QTimer *timer{nullptr};
 
     void stopSimulation();
 };

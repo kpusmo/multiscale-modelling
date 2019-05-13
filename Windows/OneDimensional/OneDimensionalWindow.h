@@ -17,9 +17,9 @@ public:
     ~OneDimensionalWindow() override;
 
 private slots:
-    void on_startButton_clicked();
-
     void on_drawButton_clicked();
+
+    void on_startButton_clicked();
 
 private:
     Ui::OneDimensionalWindow *ui;

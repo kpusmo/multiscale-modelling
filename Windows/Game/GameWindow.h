@@ -18,9 +18,9 @@ public:
     ~GameWindow() override;
 
 private slots:
-    void on_drawButton_clicked();
-
     void on_simulateButton_clicked();
+
+    void on_drawButton_clicked();
 
 private:
     Ui::GameWindow *ui;

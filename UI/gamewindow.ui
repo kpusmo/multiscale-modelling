@@ -97,7 +97,26 @@
      </layout>
     </item>
     <item row="0" column="1">
-     <widget class="QTableView" name="celluralTable"/>
+     <widget class="QTableView" name="celluralTable">
+      <attribute name="horizontalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>30</number>
+      </attribute>
+      <attribute name="horizontalHeaderMinimumSectionSize">
+       <number>1</number>
+      </attribute>
+      <attribute name="verticalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="verticalHeaderCascadingSectionResizes">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="verticalHeaderMinimumSectionSize">
+       <number>1</number>
+      </attribute>
+     </widget>
     </item>
    </layout>
   </widget>

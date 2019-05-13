@@ -17,8 +17,7 @@ void GrainGrowthWindow::on_drawButton_clicked() {
     auto height = static_cast<unsigned short>(ui->heightInput->value());
     auto width = static_cast<unsigned short>(ui->widthInput->value());
     auto startingComposition = ui->startingCompositionSelect->currentText();
-    int size = static_cast<int>(floor(1. * ui->celluralTable->width() / width));
-    size = std::min(size, 50);
+    int size = std::min(ui->celluralTable->width() / width, 50);
     ui->celluralTable->verticalHeader()->setDefaultSectionSize(size);
     ui->celluralTable->horizontalHeader()->setDefaultSectionSize(size);
 
@@ -104,8 +103,6 @@ void GrainGrowthWindow::initCelluralTable() {
     ui->celluralTable->setFocusPolicy(Qt::NoFocus);
     ui->celluralTable->setSelectionMode(QAbstractItemView::NoSelection);
     connect(ui->celluralTable, SIGNAL(clicked(const QModelIndex &)), &gridModel, SLOT(onCellSelected(const QModelIndex &)));
-    ui->celluralTable->verticalHeader()->setVisible(false);
-    ui->celluralTable->horizontalHeader()->setVisible(false);
 }
 
 void GrainGrowthWindow::onNeighbourhoodChanged(int currentIndex) {
