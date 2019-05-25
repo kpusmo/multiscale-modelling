@@ -17,7 +17,7 @@ public:
 
     ~GrainGrowthGridModel() override;
 
-    void startSimulation(const BoundaryCondition &bc);
+    virtual void startSimulation(const BoundaryCondition &bc);
 
     void simulate() override;
 
@@ -40,27 +40,28 @@ public:
      * @param columns
      */
     void setHomogeneousComposition(int rows, int columns);
-
 public slots:
 
     void nextStep();
 
     void onCellSelected(const QModelIndex &index) override;
 
+signals:
+    void showMessageBox(const QString &message);
+
 protected:
+    typedef std::pair<int, int> Coordinates;
+
     Grid<GrainCell> previousState;
     bool isRunning{false};
     QTimer *timer{nullptr};
     Neighbourhood neighbourhood{Neighbourhood::VON_NEUMNANN};
 
-    typedef std::map<GrainCell, unsigned short> GrainCellMap;
-    typedef std::shared_ptr<GrainCellMap> GrainCellMapPointer;
-
     bool isCellSelectionAvailable() override;
 
     void stopSimulation();
 
-    const GrainCell *findMostFrequentNeighbourCell(int i, int j) const;
+    const GrainCell *findMostFrequentNeighbourCell(int i, int j);
 
     void markCellWithNeighboursAsUnavailable(int a, int b, bool **map, int radius);
 
@@ -68,7 +69,9 @@ protected:
 
     bool **getGridMapForRandomComposition(int radius);
 
-    GrainCellMapPointer getNeighbourStateMap(int i, int j) const;
+    void initCellNeighbourMap(int i, int j);
+
+    Neighbourhood getLocalNeighbourhood();
 };
 
 

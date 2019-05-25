@@ -44,7 +44,7 @@ Row<T>::Row(const Row &toCopy) {
 
 template<typename T>
 T &Row<T>::operator[](short i) {
-    return row[getPeriodicalBoundaryConditionIndex(i)];
+    return const_cast<T &>((*const_cast<const Row *>(this))[i]);
 }
 
 template<typename T>

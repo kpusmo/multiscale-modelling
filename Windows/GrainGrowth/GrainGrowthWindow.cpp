@@ -1,4 +1,5 @@
 #include <cmath>
+#include <QMessageBox>
 #include "GrainGrowthWindow.h"
 #include "ui_graingrowthwindow.h"
 
@@ -7,6 +8,7 @@ GrainGrowthWindow::GrainGrowthWindow(QWidget *parent) : QMainWindow(parent), ui(
     initCelluralTable();
     initCompositionInputGroup();
     initNeighbourhoodInputGroup();
+    connect(&gridModel, SIGNAL(showMessageBox(const QString &)), this, SLOT(showMessageBox(const QString &)));
 }
 
 GrainGrowthWindow::~GrainGrowthWindow() {
@@ -40,34 +42,35 @@ void GrainGrowthWindow::on_simulateButton_clicked() {
     auto periodicalBc = ui->periodicalBcRadioButton->isChecked();
     auto neighbourhood = getChosenNeighbourhood();
     gridModel.setNeighbourhood(neighbourhood);
+    if (neighbourhood == Neighbourhood::RADIUS) {
+        auto neighbourhoodRadius = ui->radiusNeighbourhoodInput->value();
+        gridModel.setNeighbourhoodRadius(neighbourhoodRadius);
+    }
     gridModel.startSimulation(periodicalBc ? BoundaryCondition::PERIODICAL : BoundaryCondition::ABSORBING);
 }
 
 Neighbourhood GrainGrowthWindow::getChosenNeighbourhood() {
     auto neighbourhoodOption = ui->neighbourhoodSelect->currentText();
-    Neighbourhood neighbourhood = Neighbourhood::VON_NEUMNANN;
-    std::random_device rd;
-    std::mt19937 generator(rd());
     if (neighbourhoodOption == "Heksagonalne") {
         auto index = ui->hexagonalSelect->currentIndex();
         auto type = ui->hexagonalSelect->currentText();
         if (type == "Losowo") {
-            std::uniform_int_distribution<> distribution(0, 1);
-            index = distribution(generator);
+            return Neighbourhood::HEXAGONAL_RANDOM;
         }
-        neighbourhood = HEXAGONALS[index];
+        return HEXAGONALS[index];
     } else if (neighbourhoodOption == "Pentagonalne") {
         auto index = ui->pentagonalSelect->currentIndex();
         auto type = ui->pentagonalSelect->currentText();
         if (type == "Losowe") {
-            std::uniform_int_distribution<> distribution(0, 3);
-            index = distribution(generator);
+            return Neighbourhood::PENTAGONAL_RANDOM;
         }
-        neighbourhood = PENTAGONALS[index];
+        return PENTAGONALS[index];
     } else if (neighbourhoodOption == "Moore'a") {
-        neighbourhood = Neighbourhood::MOORE;
+        return Neighbourhood::MOORE;
+    } else if (neighbourhoodOption == "Promień") {
+        return Neighbourhood::RADIUS;
     }
-    return neighbourhood;
+    return Neighbourhood::VON_NEUMNANN;
 }
 
 void GrainGrowthWindow::onStartingCompositionChanged(int currentIndex) {
@@ -109,4 +112,10 @@ void GrainGrowthWindow::onNeighbourhoodChanged(int currentIndex) {
     ui->neighbourhoodInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     ui->neighbourhoodInputGroup->setCurrentIndex(currentIndex);
     ui->neighbourhoodInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+}
+
+void GrainGrowthWindow::showMessageBox(const QString &message) {
+    QMessageBox messageBox;
+    messageBox.setText(message);
+    messageBox.exec();
 }

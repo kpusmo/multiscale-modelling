@@ -49,7 +49,7 @@ Grid<T>::Grid(unsigned short h, unsigned short w) : height(h), width(w) {
 
 template<typename T>
 Row<T> &Grid<T>::operator[](short i) {
-    return grid[getPeriodicalBoundaryConditionIndex(i)];
+    return const_cast<Row<T> &>((*const_cast<const Grid *>(this))[i]);
 }
 
 template<typename T>
