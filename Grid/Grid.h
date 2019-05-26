@@ -14,66 +14,66 @@ class Grid {
 public:
     Grid() = default;
 
-    Grid(unsigned short h, unsigned short w);
+    Grid(unsigned h, unsigned w);
 
-    Row<T> &operator[](short i);
+    Row<T> &operator[](int i);
 
-    const Row<T> &operator[](short i) const;
+    const Row<T> &operator[](int i) const;
 
-    void reset(unsigned short h, unsigned short w);
+    void reset(unsigned h, unsigned w);
 
     void addRows(int count);
 
-    unsigned short getHeight() const;
+    unsigned getHeight() const;
 
-    unsigned short getWidth() const;
+    unsigned getWidth() const;
 
     void changeRandomCellStates(int count);
 
     void setBoundaryCondition(const BoundaryCondition &newBc);
 
 protected:
-    inline short getPeriodicalBoundaryConditionIndex(short i) const;
+    inline int getPeriodicalBoundaryConditionIndex(int i) const;
 
     BoundaryCondition boundaryCondition{BoundaryCondition::PERIODICAL};
-    unsigned short height{0};
-    unsigned short width{0};
+    unsigned height{0};
+    unsigned width{0};
 
     std::vector<Row<T>> grid;
 };
 
 template<typename T>
-Grid<T>::Grid(unsigned short h, unsigned short w) : height(h), width(w) {
+Grid<T>::Grid(unsigned h, unsigned w) : height(h), width(w) {
     grid.assign(h, Row<T>(w));
 }
 
 template<typename T>
-Row<T> &Grid<T>::operator[](short i) {
+Row<T> &Grid<T>::operator[](int i) {
     return const_cast<Row<T> &>((*const_cast<const Grid *>(this))[i]);
 }
 
 template<typename T>
-const Row<T> &Grid<T>::operator[](short i) const {
+const Row<T> &Grid<T>::operator[](int i) const {
     switch (boundaryCondition) {
         case BoundaryCondition::PERIODICAL:
             return grid[getPeriodicalBoundaryConditionIndex(i)];
         case BoundaryCondition::ABSORBING:
             if (i < 0 || i >= height) {
-                static auto def = Row<T>(1);
-                return def;
+                static auto fake = Row<T>(true);
+                return fake;
             }
             return grid[i];
     }
 }
 
 template<typename T>
-short Grid<T>::getPeriodicalBoundaryConditionIndex(short i) const {
+int Grid<T>::getPeriodicalBoundaryConditionIndex(int i) const {
     int index = abs(i) % height;
-    return static_cast<short>(i >= 0 || index == 0 ? index : height - index);
+    return (i >= 0 || index == 0) ? index : height - index;
 }
 
 template<typename T>
-void Grid<T>::reset(unsigned short h, unsigned short w) {
+void Grid<T>::reset(unsigned h, unsigned w) {
     height = h;
     width = w;
     grid.clear();
@@ -81,12 +81,12 @@ void Grid<T>::reset(unsigned short h, unsigned short w) {
 }
 
 template<typename T>
-unsigned short Grid<T>::getHeight() const {
+unsigned Grid<T>::getHeight() const {
     return height;
 }
 
 template<typename T>
-unsigned short Grid<T>::getWidth() const {
+unsigned Grid<T>::getWidth() const {
     return width;
 }
 

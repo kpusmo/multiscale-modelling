@@ -8,6 +8,7 @@ GrainGrowthWindow::GrainGrowthWindow(QWidget *parent) : QMainWindow(parent), ui(
     initCelluralTable();
     initCompositionInputGroup();
     initNeighbourhoodInputGroup();
+    initPostProcessingInputGroup();
     connect(&gridModel, SIGNAL(showMessageBox(const QString &)), this, SLOT(showMessageBox(const QString &)));
 }
 
@@ -16,8 +17,8 @@ GrainGrowthWindow::~GrainGrowthWindow() {
 }
 
 void GrainGrowthWindow::on_drawButton_clicked() {
-    auto height = static_cast<unsigned short>(ui->heightInput->value());
-    auto width = static_cast<unsigned short>(ui->widthInput->value());
+    auto height = ui->heightInput->value();
+    auto width = ui->widthInput->value();
     auto startingComposition = ui->startingCompositionSelect->currentText();
     int size = std::min(ui->celluralTable->width() / width, 50);
     ui->celluralTable->verticalHeader()->setDefaultSectionSize(size);
@@ -45,6 +46,17 @@ void GrainGrowthWindow::on_simulateButton_clicked() {
     if (neighbourhood == Neighbourhood::RADIUS) {
         auto neighbourhoodRadius = ui->radiusNeighbourhoodInput->value();
         gridModel.setNeighbourhoodRadius(neighbourhoodRadius);
+    }
+
+    auto postProcessing = ui->postProcessingSelect->currentText();
+    if (postProcessing == "None") {
+        gridModel.setPostProcessing(PostProcessing::NONE);
+    } else if (postProcessing == "Monte Carlo") {
+        gridModel.setPostProcessing(PostProcessing::MONTE_CARLO);
+        auto kt = ui->ktFactorInput->value();
+        gridModel.setMonteCarloKTFactor(kt);
+        auto stepCount = ui->monteCarloStepCountInput->value();
+        gridModel.setMonteCarloStepCount(stepCount);
     }
     gridModel.startSimulation(periodicalBc ? BoundaryCondition::PERIODICAL : BoundaryCondition::ABSORBING);
 }
@@ -118,4 +130,21 @@ void GrainGrowthWindow::showMessageBox(const QString &message) {
     QMessageBox messageBox;
     messageBox.setText(message);
     messageBox.exec();
+}
+
+void GrainGrowthWindow::initPostProcessingInputGroup() {
+    connect(ui->postProcessingSelect, SIGNAL(currentIndexChanged(int)), this, SLOT(onPostProcessingChanged(int)));
+    for (int i = 0; i < ui->postProcessingInputGroup->count(); ++i) {
+        QSizePolicy::Policy policy = QSizePolicy::Ignored;
+        if (i == ui->postProcessingInputGroup->currentIndex()) {
+            policy = QSizePolicy::Expanding;
+        }
+        ui->postProcessingInputGroup->widget(i)->setSizePolicy(policy, policy);
+    }
+}
+
+void GrainGrowthWindow::onPostProcessingChanged(int currentIndex) {
+    ui->postProcessingInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    ui->postProcessingInputGroup->setCurrentIndex(currentIndex);
+    ui->postProcessingInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }

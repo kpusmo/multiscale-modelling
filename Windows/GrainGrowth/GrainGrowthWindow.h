@@ -2,7 +2,7 @@
 #define GRAINGROWTHWINDOW_H
 
 #include <QMainWindow>
-#include <Windows/GrainGrowth/GridModel/RadiusNeighbourhoodGridModel.h>
+#include <Windows/GrainGrowth/GridModel/RadiusNeighbourhood/RadiusNeighbourhoodGridModel.h>
 
 namespace Ui {
     class GrainGrowthWindow;
@@ -25,6 +25,8 @@ public slots:
 
     void onNeighbourhoodChanged(int currentIndex);
 
+    void onPostProcessingChanged(int currentIndex);
+
     void showMessageBox(const QString &message);
 
 private:
@@ -38,6 +40,8 @@ private:
     void initCelluralTable();
 
     Neighbourhood getChosenNeighbourhood();
+
+    void initPostProcessingInputGroup();
 };
 
 #endif // GRAINGROWTHWINDOW_H

@@ -5,8 +5,20 @@
 #include <AbstractGridModel/GridModel.h>
 #include <Cells/GrainCell.h>
 #include <QTimer>
-#include <Grid/Neighbourhood.h>
+#include <Neighbourhood/Neighbourhood.h>
+#include <Neighbourhood/NeighbourhoodService.h>
 #include <memory>
+#include <Windows/GrainGrowth/MonteCarloProcessor/MonteCarloProcessor.h>
+
+enum PostProcessing {
+    NONE,
+    MONTE_CARLO
+};
+
+enum SimulationStage {
+    SIMULATION_STAGE,
+    MONTE_CARLO_STAGE
+};
 
 class GrainGrowthGridModel : public GridModel<GrainCell> {
 Q_OBJECT
@@ -21,7 +33,7 @@ public:
 
     void simulate() override;
 
-    void drawGrid(unsigned short height, unsigned short width);
+    void drawGrid(unsigned height, unsigned width);
 
     void setNeighbourhood(const Neighbourhood &newNeighbourhood);
 
@@ -40,8 +52,14 @@ public:
      * @param columns
      */
     void setHomogeneousComposition(int rows, int columns);
-public slots:
 
+    void setPostProcessing(PostProcessing processing);
+
+    void setMonteCarloKTFactor(double factor);
+
+    void setMonteCarloStepCount(int count);
+
+public slots:
     void nextStep();
 
     void onCellSelected(const QModelIndex &index) override;
@@ -50,17 +68,29 @@ signals:
     void showMessageBox(const QString &message);
 
 protected:
-    typedef std::pair<int, int> Coordinates;
-
     Grid<GrainCell> previousState;
     bool isRunning{false};
     QTimer *timer{nullptr};
     Neighbourhood neighbourhood{Neighbourhood::VON_NEUMNANN};
+    NeighbourhoodService *neighbourhoodService;
+    MonteCarloProcessor *monteCarloProcessor;
+    PostProcessing postProcessing{PostProcessing::MONTE_CARLO};
+    SimulationStage stage{SIMULATION_STAGE};
+    double monteCarloKTFactor;
+    int mcStepCount;
+    int mcSimulationStep{1};
 
     bool isCellSelectionAvailable() override;
 
     void stopSimulation();
 
+    void monteCarloStep();
+
+    void simulationEnded();
+
+    virtual NeighbourhoodService *getNeighbourhoodService();
+
+private:
     const GrainCell *findMostFrequentNeighbourCell(int i, int j);
 
     void markCellWithNeighboursAsUnavailable(int a, int b, bool **map, int radius);
@@ -70,8 +100,6 @@ protected:
     bool **getGridMapForRandomComposition(int radius);
 
     void initCellNeighbourMap(int i, int j);
-
-    Neighbourhood getLocalNeighbourhood();
 };
 
 

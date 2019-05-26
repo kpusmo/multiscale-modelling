@@ -15,7 +15,7 @@ public:
 
     ~GameGridModel() override;
 
-    void drawGrid(unsigned short height, unsigned short width, const QString &startingComposition);
+    void drawGrid(unsigned height, unsigned width, const QString &startingComposition);
 
     void startSimulation();
 

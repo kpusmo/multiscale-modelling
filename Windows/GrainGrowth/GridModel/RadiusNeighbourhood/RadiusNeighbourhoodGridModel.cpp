@@ -37,38 +37,33 @@ void RadiusNeighbourhoodGridModel::simulate() {
 
     for (const auto &coordinates : touchedCellsCoordinates) {
         auto &cell = grid[coordinates.first][coordinates.second];
-        cell = *cell.getMostFrequentNeighbour();
+        if (cell.isFake()) {
+            continue;
+        }
+        auto mostFrequentNeighbourCoordinates = cell.getMostFrequentNeighbourCoordinates();
+        cell = grid[mostFrequentNeighbourCoordinates.coordinates.first][mostFrequentNeighbourCoordinates.coordinates.second];
         cell.clearNeighbourMap();
         coordinatesOfCellsToProcess.push_back(coordinates);
     }
 
     if (touchedCellsCoordinates.empty()) {
-        stopSimulation();
+        simulationEnded();
     }
     previousState = grid;
 }
 
-RadiusNeighbourhoodGridModel::CoordinatesVector RadiusNeighbourhoodGridModel::updateZeroCellsInRadius(int cellY, int cellX) {
+CoordinatesVector RadiusNeighbourhoodGridModel::updateZeroCellsInRadius(int cellY, int cellX) {
     CoordinatesVector cellsCoordinates;
-    auto centerOfGravity = grid[cellY][cellX].getCenterOfGravity();
-    double cx = cellX + centerOfGravity.first;
-    double cy = cellY + centerOfGravity.second;
-    for (int y = cellY - neighbourhoodRadius; y < cellY + neighbourhoodRadius; ++y) {
-        for (int x = cellX - neighbourhoodRadius; x < cellX + neighbourhoodRadius; ++x) {
-            if (grid[y][x].getState() != 0) {
-                continue;
-            }
-            auto currentCellGravityCenter = grid[y][x].getCenterOfGravity();
-            double xx = x + currentCellGravityCenter.first;
-            double yy = y + currentCellGravityCenter.second;
-            auto distance = sqrt(pow(yy - cy, 2) + pow(xx - cx, 2));
-            if (distance < neighbourhoodRadius) {
-                auto isFirstUpdate = grid[y][x].addNeighbourToMap(grid[cellY][cellX]);
-                if (isFirstUpdate) {
-                    cellsCoordinates.emplace_back(y, x);
-                }
-            }
+    auto neighbourCoordinates = getNeighbourhoodService()->ignoreFakes(true)->setMode(NeighbourhoodService::ZERO_ONLY)->getCellNeighbourCoordinates(grid, cellY, cellX);
+    for (auto coordinates : neighbourCoordinates) {
+        auto isFirstUpdate = grid[coordinates.first][coordinates.second].addNeighbourToMap(grid[cellY][cellX], Coordinates(cellY, cellX));
+        if (isFirstUpdate) {
+            cellsCoordinates.push_back(coordinates);
         }
     }
     return cellsCoordinates;
+}
+
+NeighbourhoodService *RadiusNeighbourhoodGridModel::getNeighbourhoodService() {
+    return GrainGrowthGridModel::getNeighbourhoodService()->setRadius(neighbourhoodRadius);
 }

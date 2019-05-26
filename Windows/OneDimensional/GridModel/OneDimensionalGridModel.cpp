@@ -2,14 +2,14 @@
 #include <QDebug>
 #include <iostream>
 
-void OneDimensionalGridModel::setCellCount(unsigned short cellCount, int highStateCount) {
+void OneDimensionalGridModel::setCellCount(unsigned cellCount, int highStateCount) {
     beginResetModel();
     grid.reset(1, cellCount);
     grid.changeRandomCellStates(highStateCount);
     endResetModel();
 }
 
-void OneDimensionalGridModel::setSimulationSteps(unsigned short simulationSteps) {
+void OneDimensionalGridModel::setSimulationSteps(unsigned simulationSteps) {
     if (grid.getHeight() != 1) { //can set simulation steps only after drawing first row
         return;
     }
@@ -28,7 +28,7 @@ void OneDimensionalGridModel::simulate() {
             cellsMask += grid[stepCounter][i].getState() << 1;
             cellsMask += grid[stepCounter][i - 1].getState() << 2;
             auto ruleMask = rule >> cellsMask;
-            grid[stepCounter + 1][i].setState(static_cast<unsigned short>(ruleMask & 1));
+            grid[stepCounter + 1][i].setState(ruleMask & 1);
         }
     }
     QModelIndex topLeft = createIndex(1, 0);
@@ -40,6 +40,6 @@ bool OneDimensionalGridModel::isCellSelectionAvailable() {
     return grid.getHeight() == 1;
 }
 
-void OneDimensionalGridModel::setRule(unsigned short r) {
+void OneDimensionalGridModel::setRule(unsigned r) {
     rule = r;
 }

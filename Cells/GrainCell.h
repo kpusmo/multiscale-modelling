@@ -3,25 +3,27 @@
 
 #include <QColor>
 #include <map>
+#include <Types/Types.h>
+#include <random>
 #include "RgbColor.h"
 
 class GrainCell {
-protected:
-    typedef std::pair<double, double> Coordinates;
-    typedef std::map<const GrainCell, unsigned short> GrainCellMap;
-
 public:
     GrainCell();
+
+    explicit GrainCell(bool isFake);
+
+    GrainCell(const GrainCell &other);
 
     void reset();
 
     void changeState();
 
-    short getState() const;
+    unsigned getState() const;
 
     QColor getColor() const;
 
-    const Coordinates &getCenterOfGravity() const;
+    const RealCoordinates &getCenterOfGravity() const;
 
     GrainCell &operator=(const GrainCell &other);
 
@@ -33,20 +35,38 @@ public:
      * @param cell
      * @return true if map was empty, false otherwise
      */
-    bool addNeighbourToMap(const GrainCell &cell);
+    bool addNeighbourToMap(const GrainCell &cell, Coordinates coordinates);
 
-    const GrainCell *getMostFrequentNeighbour() const;
+    StateWithCoordinates getMostFrequentNeighbourCoordinates() const;
 
     void clearNeighbourMap();
 
+    static void resetColorsAndState();
+
+    bool isFake() const;
+
 protected:
-    static unsigned short nextState;
-    std::map<RgbColor, bool> usedColors;
+    static unsigned nextState;
+    static ColorMap usedColors;
     /** From upper left corner */
-    std::pair<double, double> centerOfGravity;
-    unsigned short state;
+    RealCoordinates centerOfGravity;
+    unsigned state;
     QColor color;
-    GrainCellMap neighbourStateMap;
+    NeighbourStateCountMap neighbourStateMap{};
+    bool fake{false};
+    std::random_device randomDevice;
+    std::mt19937 randomNumberGenerator;
+
+    void setCenterOfGravity();
+};
+
+struct StateWithCoordinates {
+    int state;
+    Coordinates coordinates;
+
+    bool operator<(const StateWithCoordinates &other) const {
+        return state < other.state;
+    }
 };
 
 

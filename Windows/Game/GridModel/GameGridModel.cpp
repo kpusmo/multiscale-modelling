@@ -8,7 +8,7 @@ GameGridModel::~GameGridModel() {
     delete timer;
 }
 
-void GameGridModel::drawGrid(unsigned short height, unsigned short width, const QString &startingComposition) {
+void GameGridModel::drawGrid(unsigned height, unsigned width, const QString &startingComposition) {
     stopSimulation();
     beginResetModel();
     grid.reset(height, width);

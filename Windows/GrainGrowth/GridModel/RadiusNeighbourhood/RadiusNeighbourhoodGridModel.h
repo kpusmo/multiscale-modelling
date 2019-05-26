@@ -2,7 +2,7 @@
 #define WIELOSKALOWE_RADIUSNEIGHBOURHOODGRIDMODEL_H
 
 
-#include "GrainGrowthGridModel.h"
+#include "Windows/GrainGrowth/GridModel/Base/GrainGrowthGridModel.h"
 
 class RadiusNeighbourhoodGridModel : public GrainGrowthGridModel {
 public:
@@ -13,14 +13,14 @@ public:
 
     void simulate() override;
 protected:
-    typedef std::vector<Coordinates> CoordinatesVector;
-
     int neighbourhoodRadius{};
     CoordinatesVector coordinatesOfCellsToProcess;
 
     void initCellsToProcess();
 
     CoordinatesVector updateZeroCellsInRadius(int cellY, int cellX);
+
+    NeighbourhoodService *getNeighbourhoodService() override;
 };
 
 

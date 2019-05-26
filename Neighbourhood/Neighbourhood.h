@@ -1,6 +1,9 @@
 #ifndef WIELOSKALOWE_NEIGHBOURHOOD_H
 #define WIELOSKALOWE_NEIGHBOURHOOD_H
 
+#include <vector>
+#include <cmath>
+
 enum Neighbourhood {
     VON_NEUMNANN,
     MOORE,

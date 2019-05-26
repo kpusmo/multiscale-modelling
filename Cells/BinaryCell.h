@@ -8,17 +8,20 @@ class BinaryCell {
 public:
     BinaryCell() = default;
 
-    void setState(unsigned short newState);
+    explicit BinaryCell(bool isFake);
+
+    void setState(unsigned newState);
 
     void changeState();
 
-    short getState() const;
+    int getState() const;
 
     QColor getColor() const;
 
 protected:
-    unsigned short state{0};
+    unsigned state{0};
     QColor colors[2] = {Qt::yellow, Qt::red};
+    bool fake{false};
 };
 
 #endif //CELL_H

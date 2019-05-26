@@ -2,28 +2,44 @@
 #include "GrainGrowthGridModel.h"
 #include <sstream>
 
-GrainGrowthGridModel::GrainGrowthGridModel() : timer(new QTimer(this)) {
+GrainGrowthGridModel::GrainGrowthGridModel() : timer(new QTimer(this)), neighbourhoodService(new NeighbourhoodService), monteCarloProcessor(new MonteCarloProcessor) {
     connect(timer, SIGNAL(timeout()), SLOT(nextStep()));
 }
 
 GrainGrowthGridModel::~GrainGrowthGridModel() {
     delete timer;
+    delete neighbourhoodService;
+    delete monteCarloProcessor;
 }
 
 void GrainGrowthGridModel::nextStep() {
+    if (!isRunning) {
+        return;
+    }
     beginResetModel();
-    simulate();
+    switch (stage) {
+        case SIMULATION_STAGE:
+            simulate();
+            break;
+        case MONTE_CARLO_STAGE:
+            monteCarloStep();
+            break;
+    }
     endResetModel();
 }
 
-void GrainGrowthGridModel::drawGrid(unsigned short height, unsigned short width) {
+void GrainGrowthGridModel::drawGrid(unsigned height, unsigned width) {
     stopSimulation();
     beginResetModel();
+    GrainCell::resetColorsAndState();
     grid.reset(height, width);
     endResetModel();
 }
 
 void GrainGrowthGridModel::stopSimulation() {
+    mcSimulationStep = 0;
+    stage = SIMULATION_STAGE;
+    monteCarloProcessor->reset();
     timer->stop();
     isRunning = false;
 }
@@ -57,16 +73,27 @@ void GrainGrowthGridModel::simulate() {
         }
     }
     if (!touched) {
-        stopSimulation();
+        simulationEnded();
     }
     previousState = grid;
 }
 
 const GrainCell *GrainGrowthGridModel::findMostFrequentNeighbourCell(int i, int j) {
     initCellNeighbourMap(i, j);
-    auto result = grid[i][j].getMostFrequentNeighbour();
+    auto coordinates = grid[i][j].getMostFrequentNeighbourCoordinates();
     grid[i][j].clearNeighbourMap();
-    return result;
+    const auto &cell = grid[coordinates.coordinates.first][coordinates.coordinates.second];
+    if (coordinates.state == -1 || cell.isFake()) {
+        return nullptr;
+    }
+    return &grid[coordinates.coordinates.first][coordinates.coordinates.second];
+}
+
+void GrainGrowthGridModel::initCellNeighbourMap(int i, int j) {
+    auto neighbourCoordinates = getNeighbourhoodService()->ignoreFakes(true)->setMode(NeighbourhoodService::NON_ZERO_ONLY)->getCellNeighbourCoordinates(grid, i, j);
+    for (const auto &coordinates : neighbourCoordinates) {
+        grid[i][j].addNeighbourToMap(previousState[coordinates.first][coordinates.second], coordinates);
+    }
 }
 
 void GrainGrowthGridModel::onCellSelected(const QModelIndex &index) {
@@ -170,9 +197,11 @@ bool **GrainGrowthGridModel::getGridMapForRandomComposition(int radius) {
 }
 
 void GrainGrowthGridModel::markCellWithNeighboursAsUnavailable(int a, int b, bool **map, int radius) {
-    for (int i = std::max(0, a - radius); i <= std::min(a + radius, grid.getHeight() - 1); ++i) {
+    int gridBoundHeight = grid.getHeight() - 1;
+    for (int i = std::max(0, a - radius); i <= std::min(a + radius, gridBoundHeight); ++i) {
         auto delta = std::abs(i - a);
-        for (int j = std::max(0, b - radius + delta); j <= std::min(b + radius - delta, grid.getWidth() - 1); ++j) {
+        int gridBoundWidth = grid.getWidth() - 1;
+        for (int j = std::max(0, b - radius + delta); j <= std::min(b + radius - delta, gridBoundWidth); ++j) {
             map[i][j] = false;
         }
     }
@@ -194,84 +223,37 @@ void GrainGrowthGridModel::setNeighbourhood(const Neighbourhood &newNeighbourhoo
     neighbourhood = newNeighbourhood;
 }
 
-void GrainGrowthGridModel::initCellNeighbourMap(int i, int j) {
-    auto localNeighbourhood = getLocalNeighbourhood();
-    switch (localNeighbourhood) {
-        case Neighbourhood::VON_NEUMNANN:
-            grid[i][j].addNeighbourToMap(previousState[i][j - 1]);
-            grid[i][j].addNeighbourToMap(previousState[i][j + 1]);
-            grid[i][j].addNeighbourToMap(previousState[i - 1][j]);
-            grid[i][j].addNeighbourToMap(previousState[i + 1][j]);
-            break;
-        case Neighbourhood::MOORE:
-            for (int a = i - 1; a < i + 2; ++a) {
-                for (int b = j - 1; b < j + 2; ++b) {
-                    //it tries to add (i, j) to map, but its state is zero, so it's ignored
-                    grid[i][j].addNeighbourToMap(previousState[a][b]);
-                }
-            }
-            break;
-        case Neighbourhood::HEXAGONAL_LEFT_TOP:
-            grid[i][j].addNeighbourToMap(previousState[i - 1][j - 1]);
-            grid[i][j].addNeighbourToMap(previousState[i - 1][j]);
-            grid[i][j].addNeighbourToMap(previousState[i][j - 1]);
+void GrainGrowthGridModel::monteCarloStep() {
+    ++mcSimulationStep;
+    auto result = monteCarloProcessor->setNeighbourService(getNeighbourhoodService())->process(grid, monteCarloKTFactor);
+    if (!result || mcSimulationStep == mcStepCount) {
+        stopSimulation();
+    }
+}
 
-            grid[i][j].addNeighbourToMap(previousState[i][j + 1]);
-            grid[i][j].addNeighbourToMap(previousState[i + 1][j + 1]);
-            grid[i][j].addNeighbourToMap(previousState[i + 1][j]);
+void GrainGrowthGridModel::simulationEnded() {
+    switch (postProcessing) {
+        case PostProcessing::MONTE_CARLO:
+            stage = SimulationStage::MONTE_CARLO_STAGE;
             break;
-        case Neighbourhood::HEXAGONAL_RIGHT_TOP:
-            grid[i][j].addNeighbourToMap(previousState[i - 1][j]);
-            grid[i][j].addNeighbourToMap(previousState[i - 1][j + 1]);
-            grid[i][j].addNeighbourToMap(previousState[i][j + 1]);
-
-            grid[i][j].addNeighbourToMap(previousState[i][j - 1]);
-            grid[i][j].addNeighbourToMap(previousState[i + 1][j - 1]);
-            grid[i][j].addNeighbourToMap(previousState[i + 1][j]);
-            break;
-        case Neighbourhood::PENTAGONAL_TOP:
-            grid[i][j].addNeighbourToMap(previousState[i][j - 1]);
-            grid[i][j].addNeighbourToMap(previousState[i][j + 1]);
-            grid[i][j].addNeighbourToMap(previousState[i - 1][j - 1]);
-            grid[i][j].addNeighbourToMap(previousState[i - 1][j]);
-            grid[i][j].addNeighbourToMap(previousState[i - 1][j + 1]);
-            break;
-        case Neighbourhood::PENTAGONAL_RIGHT:
-            grid[i][j].addNeighbourToMap(previousState[i - 1][j]);
-            grid[i][j].addNeighbourToMap(previousState[i + 1][j]);
-            grid[i][j].addNeighbourToMap(previousState[i - 1][j + 1]);
-            grid[i][j].addNeighbourToMap(previousState[i][j + 1]);
-            grid[i][j].addNeighbourToMap(previousState[i + 1][j + 1]);
-            break;
-        case Neighbourhood::PENTAGONAL_BOTTOM:
-            grid[i][j].addNeighbourToMap(previousState[i][j - 1]);
-            grid[i][j].addNeighbourToMap(previousState[i][j + 1]);
-            grid[i][j].addNeighbourToMap(previousState[i + 1][j - 1]);
-            grid[i][j].addNeighbourToMap(previousState[i + 1][j]);
-            grid[i][j].addNeighbourToMap(previousState[i + 1][j + 1]);
-            break;
-        case Neighbourhood::PENTAGONAL_LEFT:
-            grid[i][j].addNeighbourToMap(previousState[i - 1][j]);
-            grid[i][j].addNeighbourToMap(previousState[i + 1][j]);
-            grid[i][j].addNeighbourToMap(previousState[i - 1][j - 1]);
-            grid[i][j].addNeighbourToMap(previousState[i][j - 1]);
-            grid[i][j].addNeighbourToMap(previousState[i + 1][j - 1]);
+        case PostProcessing::NONE:
+            stopSimulation();
             break;
     }
 }
 
-Neighbourhood GrainGrowthGridModel::getLocalNeighbourhood() {
-    auto localNeighbourhood = neighbourhood;
-    if (localNeighbourhood == Neighbourhood::PENTAGONAL_RANDOM) {
-        std::random_device rd;
-        std::mt19937 generator(rd());
-        std::uniform_int_distribution<> distribution(0, 3);
-        localNeighbourhood = PENTAGONALS[distribution(generator)];
-    } else if (localNeighbourhood == Neighbourhood::HEXAGONAL_RANDOM) {
-        std::random_device rd;
-        std::mt19937 generator(rd());
-        std::uniform_int_distribution<> distribution(0, 1);
-        localNeighbourhood = HEXAGONALS[distribution(generator)];
-    }
-    return localNeighbourhood;
+void GrainGrowthGridModel::setPostProcessing(PostProcessing processing) {
+    postProcessing = processing;
+}
+
+void GrainGrowthGridModel::setMonteCarloKTFactor(double factor) {
+    monteCarloKTFactor = factor;
+}
+
+void GrainGrowthGridModel::setMonteCarloStepCount(int count) {
+    mcStepCount = count;
+}
+
+NeighbourhoodService *GrainGrowthGridModel::getNeighbourhoodService() {
+    return neighbourhoodService->reset()->setNeighbourhood(neighbourhood);
 }

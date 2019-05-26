@@ -23,8 +23,8 @@ void OneDimensionalWindow::on_drawButton_clicked() {
 }
 
 void OneDimensionalWindow::on_startButton_clicked() {
-    auto rule = static_cast<unsigned short>(ui->ruleInput->value());
-    auto simulationSteps = static_cast<unsigned short>(ui->simulationStepsInput->value());
+    auto rule = static_cast<unsigned>(ui->ruleInput->value());
+    auto simulationSteps = static_cast<unsigned>(ui->simulationStepsInput->value());
     gridModel.setSimulationSteps(simulationSteps);
     gridModel.setRule(rule);
     gridModel.simulate();

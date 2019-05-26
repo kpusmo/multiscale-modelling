@@ -8,18 +8,18 @@
 class OneDimensionalGridModel : public GridModel<BinaryCell> {
 Q_OBJECT
 public:
-    void setCellCount(unsigned short cellCount, int highStateCount = 10);
+    void setCellCount(unsigned cellCount, int highStateCount = 10);
 
-    void setSimulationSteps(unsigned short simulationSteps);
+    void setSimulationSteps(unsigned simulationSteps);
 
-    void setRule(unsigned short rule);
+    void setRule(unsigned rule);
 
     void simulate() override;
 
 protected:
     bool isCellSelectionAvailable() override;
 
-    unsigned short rule;
+    unsigned rule;
 };
 
 

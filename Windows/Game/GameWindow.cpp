@@ -14,8 +14,8 @@ GameWindow::~GameWindow() {
 }
 
 void GameWindow::on_drawButton_clicked() {
-    auto height = static_cast<unsigned short>(ui->heightInput->value());
-    auto width = static_cast<unsigned short>(ui->widthInput->value());
+    auto height = ui->heightInput->value();
+    auto width = ui->widthInput->value();
     int size = std::min(ui->celluralTable->width() / width, 50);
     ui->celluralTable->verticalHeader()->setDefaultSectionSize(size);
     ui->celluralTable->horizontalHeader()->setDefaultSectionSize(size);

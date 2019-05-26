@@ -3,33 +3,42 @@
 #include <QDebug>
 #include <cstdlib>
 
-unsigned short GrainCell::nextState = 1;
+unsigned GrainCell::nextState = 1;
+ColorMap GrainCell::usedColors = ColorMap();
 
-GrainCell::GrainCell() : state(0), color(QColor(255, 255, 255)) {
-    std::random_device rd;
-    std::mt19937 generator(rd());
+GrainCell::GrainCell() : state(0), color(QColor(255, 255, 255)), randomNumberGenerator(randomDevice()) {
+    setCenterOfGravity();
+}
+
+GrainCell::GrainCell(bool isFake) : fake(isFake), state(0), color(QColor(255, 255, 255)), randomNumberGenerator(randomDevice()) {}
+
+GrainCell::GrainCell(const GrainCell &other) : randomNumberGenerator(randomDevice()) {
+    state = other.state;
+    color = QColor(other.color);
+    setCenterOfGravity();
+}
+
+void GrainCell::setCenterOfGravity() {
     std::uniform_real_distribution<> distribution(0, 1);
-    centerOfGravity.first = distribution(generator);
-    centerOfGravity.second = distribution(generator);
+    centerOfGravity.first = distribution(randomNumberGenerator);
+    centerOfGravity.second = distribution(randomNumberGenerator);
 }
 
 void GrainCell::changeState() {
     state = nextState++;
 
-    std::random_device rd;
-    std::mt19937 generator(rd());
     std::uniform_int_distribution<> distribution(0, 255);
     RgbColor rgbColor{};
     do {
-        rgbColor.r = distribution(generator);
-        rgbColor.g = distribution(generator);
-        rgbColor.b = distribution(generator);
+        rgbColor.r = distribution(randomNumberGenerator);
+        rgbColor.g = distribution(randomNumberGenerator);
+        rgbColor.b = distribution(randomNumberGenerator);
     } while (usedColors.count(rgbColor) > 0);
     usedColors[rgbColor] = true;
     color.setRgb(rgbColor.r, rgbColor.g, rgbColor.b);
 }
 
-short GrainCell::getState() const {
+unsigned GrainCell::getState() const {
     return state;
 }
 
@@ -40,6 +49,7 @@ QColor GrainCell::getColor() const {
 GrainCell &GrainCell::operator=(const GrainCell &other) {
     state = other.state;
     color = QColor(other.color);
+    centerOfGravity = other.centerOfGravity;
     return *this;
 }
 
@@ -56,24 +66,26 @@ void GrainCell::reset() {
     color.setRgb(255, 255, 255);
 }
 
-const GrainCell::Coordinates &GrainCell::getCenterOfGravity() const {
+const RealCoordinates &GrainCell::getCenterOfGravity() const {
     return centerOfGravity;
 }
 
-bool GrainCell::addNeighbourToMap(const GrainCell &cell) {
+bool GrainCell::addNeighbourToMap(const GrainCell &cell, Coordinates coordinates) {
     auto isEmpty = neighbourStateMap.empty();
     if (cell.state != 0) {
-        neighbourStateMap[cell]++;
+        int state = cell.getState();
+        auto key = StateWithCoordinates{state, coordinates};
+        neighbourStateMap[key]++;
     }
     return isEmpty;
 }
 
-const GrainCell *GrainCell::getMostFrequentNeighbour() const {
-    unsigned short maxValue = 0;
-    const GrainCell *max = nullptr;
+StateWithCoordinates GrainCell::getMostFrequentNeighbourCoordinates() const {
+    unsigned maxValue = 0;
+    auto max = StateColor{-1};
     for (const auto &mapItem : neighbourStateMap) {
         if (mapItem.second > maxValue) {
-            max = &(mapItem.first);
+            max = mapItem.first;
             maxValue = mapItem.second;
         }
     }
@@ -82,5 +94,14 @@ const GrainCell *GrainCell::getMostFrequentNeighbour() const {
 
 void GrainCell::clearNeighbourMap() {
     neighbourStateMap.clear();
+}
+
+void GrainCell::resetColorsAndState() {
+    usedColors.clear();
+    nextState = 1;
+}
+
+bool GrainCell::isFake() const {
+    return fake;
 }
 
