@@ -15,10 +15,19 @@ QColor BinaryCell::getColor() const {
     return colors[state];
 }
 
-int BinaryCell::getState() const {
+unsigned BinaryCell::getState() const {
     return state;
 }
 
 void BinaryCell::changeState() {
     state = (state + 1) % 2;
+}
+
+bool BinaryCell::isFake() const {
+    return fake;
+}
+
+const RealCoordinates &BinaryCell::getCenterOfGravity() const {
+    static auto coordinates = RealCoordinates(0, 0);
+    return coordinates;
 }

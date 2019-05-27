@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <thread>
 
 class GrainCell;
 struct StateWithCoordinates;
@@ -26,5 +27,7 @@ struct CoordinatesCellComparator {
 };
 
 typedef std::set<CellCoordinatesPair, CoordinatesCellComparator> CoordinatesCellSet;
+
+typedef std::vector<std::thread> ThreadVector;
 
 #endif //WIELOSKALOWE_TYPES_H

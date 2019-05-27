@@ -2,6 +2,7 @@
 #define CELL_H
 
 #include <QColor>
+#include <Types/Types.h>
 
 
 class BinaryCell {
@@ -14,9 +15,13 @@ public:
 
     void changeState();
 
-    int getState() const;
+    unsigned getState() const;
 
     QColor getColor() const;
+
+    bool isFake() const;
+
+    const RealCoordinates &getCenterOfGravity() const;
 
 protected:
     unsigned state{0};

@@ -72,9 +72,9 @@ const RealCoordinates &GrainCell::getCenterOfGravity() const {
 
 bool GrainCell::addNeighbourToMap(const GrainCell &cell, Coordinates coordinates) {
     auto isEmpty = neighbourStateMap.empty();
-    if (cell.state != 0) {
-        int state = cell.getState();
-        auto key = StateWithCoordinates{state, coordinates};
+    int cellState = cell.getState();
+    if (cellState != 0) {
+        auto key = StateWithCoordinates{cellState, coordinates};
         neighbourStateMap[key]++;
     }
     return isEmpty;
@@ -82,7 +82,7 @@ bool GrainCell::addNeighbourToMap(const GrainCell &cell, Coordinates coordinates
 
 StateWithCoordinates GrainCell::getMostFrequentNeighbourCoordinates() const {
     unsigned maxValue = 0;
-    auto max = StateColor{-1};
+    auto max = StateWithCoordinates{-1};
     for (const auto &mapItem : neighbourStateMap) {
         if (mapItem.second > maxValue) {
             max = mapItem.first;

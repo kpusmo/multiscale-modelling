@@ -7,16 +7,21 @@
 #include "BaseGridModel.h"
 #include <QDebug>
 #include <QSize>
+#include <AbstractProcessor/Processor.h>
 #include "Grid/Grid.h"
 
 template<typename T>
 class GridModel : public BaseGridModel {
 public:
+    GridModel() = delete;
+
+    explicit GridModel(Processor<T> *p) : processor(p) {}
+
+    ~GridModel() override;
+
     int rowCount(const QModelIndex &index = QModelIndex()) const override;
 
     int columnCount(const QModelIndex &index = QModelIndex()) const override;
-
-    virtual void simulate() = 0;
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
@@ -25,9 +30,15 @@ public slots:
 
 protected:
     Grid<T> grid;
+    Processor<T> *processor;
 
     virtual bool isCellSelectionAvailable() = 0;
 };
+
+template<typename T>
+GridModel<T>::~GridModel() {
+    delete processor;
+}
 
 template<typename T>
 int GridModel<T>::rowCount(const QModelIndex &index) const {

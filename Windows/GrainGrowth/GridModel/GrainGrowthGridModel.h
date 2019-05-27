@@ -6,9 +6,9 @@
 #include <Cells/GrainCell.h>
 #include <QTimer>
 #include <Neighbourhood/Neighbourhood.h>
-#include <Neighbourhood/NeighbourhoodService.h>
+#include <Neighbourhood/TwoDimensionalNeighbourhoodService.h>
 #include <memory>
-#include <Windows/GrainGrowth/MonteCarloProcessor/MonteCarloProcessor.h>
+#include <PostProcessors/MonteCarlo/MonteCarloProcessor.h>
 
 enum PostProcessing {
     NONE,
@@ -27,15 +27,17 @@ public:
 
     GrainGrowthGridModel();
 
+    explicit GrainGrowthGridModel(Processor<GrainCell> *p);
+
     ~GrainGrowthGridModel() override;
 
     virtual void startSimulation(const BoundaryCondition &bc);
 
-    void simulate() override;
-
     void drawGrid(unsigned height, unsigned width);
 
-    void setNeighbourhood(const Neighbourhood &newNeighbourhood);
+    void setNeighbourhood(Neighbourhood neighbourhood);
+
+    void setNeighbourhoodRadius(int radius);
 
     /**
      * Sets state of count cells as non-zero. If positive radius provided, there will not be more than one non-zero cell in given radius.
@@ -68,16 +70,12 @@ signals:
     void showMessageBox(const QString &message);
 
 protected:
-    Grid<GrainCell> previousState;
     bool isRunning{false};
     QTimer *timer{nullptr};
-    Neighbourhood neighbourhood{Neighbourhood::VON_NEUMNANN};
-    NeighbourhoodService *neighbourhoodService;
     MonteCarloProcessor *monteCarloProcessor;
     PostProcessing postProcessing{PostProcessing::MONTE_CARLO};
     SimulationStage stage{SIMULATION_STAGE};
-    double monteCarloKTFactor;
-    int mcStepCount;
+    int mcStepCount{};
     int mcSimulationStep{1};
 
     bool isCellSelectionAvailable() override;
@@ -86,20 +84,16 @@ protected:
 
     void monteCarloStep();
 
-    void simulationEnded();
-
-    virtual NeighbourhoodService *getNeighbourhoodService();
+    void simulationStageEnded();
 
 private:
-    const GrainCell *findMostFrequentNeighbourCell(int i, int j);
-
     void markCellWithNeighboursAsUnavailable(int a, int b, bool **map, int radius);
 
-    std::vector<std::pair<int, int>> getCoordinatesOfAvailableCells(bool **map);
+    CoordinatesVector getCoordinatesOfAvailableCells(bool **map);
 
     bool **getGridMapForRandomComposition(int radius);
 
-    void initCellNeighbourMap(int i, int j);
+    void simulationStep();
 };
 
 

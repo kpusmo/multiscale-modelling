@@ -1,7 +1,9 @@
+#include <Windows/Game/Processor/GameProcessor.h>
 #include "GameGridModel.h"
 
-GameGridModel::GameGridModel() : timer(new QTimer(this)) {
+GameGridModel::GameGridModel() : timer(new QTimer(this)), GridModel(new GameProcessor) {
     connect(timer, SIGNAL(timeout()), SLOT(nextStep()));
+    processor->setNeighbourhood(Neighbourhood::VON_NEUMNANN);
 }
 
 GameGridModel::~GameGridModel() {
@@ -22,48 +24,21 @@ void GameGridModel::startSimulation() {
     }
     isRunning = true;
     timer->start(TIMER_INTERVAL);
-    previousState = grid;
-    simulate();
-}
-
-void GameGridModel::simulate() {
-    for (int i = 0; i < grid.getHeight(); ++i) {
-        for (int j = 0; j < grid.getWidth(); ++j) {
-            auto livingCells = countLivingSurroundingCells(i, j);
-            auto currentState = previousState[i][j].getState();
-            if (livingCells > 3 || livingCells < 2) {
-                grid[i][j].setState(0);
-            } else if (currentState == 0 && livingCells == 3) {
-                grid[i][j].setState(1);
-            }
-        }
-    }
-    previousState = grid;
+    nextStep();
 }
 
 bool GameGridModel::isCellSelectionAvailable() {
     return !isRunning;
 }
 
-unsigned GameGridModel::countLivingSurroundingCells(int a, int b) {
-    unsigned count = 0;
-    //Moore neighbourhood
-    for (int i = a - 1; i < a + 2; ++i) {
-        for (int j = b - 1; j < b + 2; ++j) {
-            count += previousState[i][j].getState();
-        }
-    }
-    count -= previousState[a][b].getState();
-    return count;
-}
-
 void GameGridModel::nextStep() {
     beginResetModel();
-    simulate();
+    processor->process(grid);
     endResetModel();
 }
 
 void GameGridModel::stopSimulation() {
+    processor->reset();
     timer->stop();
     isRunning = false;
 }

@@ -1,14 +1,17 @@
 #include <cmath>
 #include "GrainGrowthGridModel.h"
 #include <sstream>
+#include <QTimer>
+#include <Windows/GrainGrowth/Processor/GrainGrowthProcessor.h>
 
-GrainGrowthGridModel::GrainGrowthGridModel() : timer(new QTimer(this)), neighbourhoodService(new NeighbourhoodService), monteCarloProcessor(new MonteCarloProcessor) {
+GrainGrowthGridModel::GrainGrowthGridModel() : GrainGrowthGridModel(new GrainGrowthProcessor) {}
+
+GrainGrowthGridModel::GrainGrowthGridModel(Processor<GrainCell> *p) : GridModel(p), timer(new QTimer(this)), monteCarloProcessor(new MonteCarloProcessor) {
     connect(timer, SIGNAL(timeout()), SLOT(nextStep()));
 }
 
 GrainGrowthGridModel::~GrainGrowthGridModel() {
     delete timer;
-    delete neighbourhoodService;
     delete monteCarloProcessor;
 }
 
@@ -19,7 +22,7 @@ void GrainGrowthGridModel::nextStep() {
     beginResetModel();
     switch (stage) {
         case SIMULATION_STAGE:
-            simulate();
+            simulationStep();
             break;
         case MONTE_CARLO_STAGE:
             monteCarloStep();
@@ -40,6 +43,7 @@ void GrainGrowthGridModel::stopSimulation() {
     mcSimulationStep = 0;
     stage = SIMULATION_STAGE;
     monteCarloProcessor->reset();
+    processor->reset();
     timer->stop();
     isRunning = false;
 }
@@ -51,49 +55,9 @@ void GrainGrowthGridModel::startSimulation(const BoundaryCondition &bc) {
     timer->start(TIMER_INTERVAL);
     isRunning = true;
     grid.setBoundaryCondition(bc);
-    previousState = grid;
     beginResetModel();
-    simulate();
+    simulationStep();
     endResetModel();
-}
-
-void GrainGrowthGridModel::simulate() {
-    qDebug() << "simulate";
-    bool touched = false;
-    for (int i = 0; i < grid.getHeight(); ++i) {
-        for (int j = 0; j < grid.getWidth(); ++j) {
-            if (grid[i][j].getState() != 0) {
-                continue;
-            }
-            auto mostFrequentNeighbourCell = findMostFrequentNeighbourCell(i, j);
-            if (mostFrequentNeighbourCell != nullptr) {
-                touched = true;
-                grid[i][j] = *mostFrequentNeighbourCell;
-            }
-        }
-    }
-    if (!touched) {
-        simulationEnded();
-    }
-    previousState = grid;
-}
-
-const GrainCell *GrainGrowthGridModel::findMostFrequentNeighbourCell(int i, int j) {
-    initCellNeighbourMap(i, j);
-    auto coordinates = grid[i][j].getMostFrequentNeighbourCoordinates();
-    grid[i][j].clearNeighbourMap();
-    const auto &cell = grid[coordinates.coordinates.first][coordinates.coordinates.second];
-    if (coordinates.state == -1 || cell.isFake()) {
-        return nullptr;
-    }
-    return &grid[coordinates.coordinates.first][coordinates.coordinates.second];
-}
-
-void GrainGrowthGridModel::initCellNeighbourMap(int i, int j) {
-    auto neighbourCoordinates = getNeighbourhoodService()->ignoreFakes(true)->setMode(NeighbourhoodService::NON_ZERO_ONLY)->getCellNeighbourCoordinates(grid, i, j);
-    for (const auto &coordinates : neighbourCoordinates) {
-        grid[i][j].addNeighbourToMap(previousState[coordinates.first][coordinates.second], coordinates);
-    }
 }
 
 void GrainGrowthGridModel::onCellSelected(const QModelIndex &index) {
@@ -207,8 +171,8 @@ void GrainGrowthGridModel::markCellWithNeighboursAsUnavailable(int a, int b, boo
     }
 }
 
-std::vector<std::pair<int, int>> GrainGrowthGridModel::getCoordinatesOfAvailableCells(bool **map) {
-    std::vector<std::pair<int, int>> availableCells;
+CoordinatesVector GrainGrowthGridModel::getCoordinatesOfAvailableCells(bool **map) {
+    CoordinatesVector availableCells;
     for (int i = 0; i < grid.getHeight(); ++i) {
         for (int j = 0; j < grid.getWidth(); ++j) {
             if (map[i][j]) {
@@ -219,19 +183,20 @@ std::vector<std::pair<int, int>> GrainGrowthGridModel::getCoordinatesOfAvailable
     return availableCells;
 }
 
-void GrainGrowthGridModel::setNeighbourhood(const Neighbourhood &newNeighbourhood) {
-    neighbourhood = newNeighbourhood;
+void GrainGrowthGridModel::setNeighbourhood(Neighbourhood neighbourhood) {
+    processor->setNeighbourhood(neighbourhood);
+    monteCarloProcessor->setNeighbourhood(neighbourhood);
 }
 
 void GrainGrowthGridModel::monteCarloStep() {
     ++mcSimulationStep;
-    auto result = monteCarloProcessor->setNeighbourService(getNeighbourhoodService())->process(grid, monteCarloKTFactor);
+    auto result = monteCarloProcessor->process(grid);
     if (!result || mcSimulationStep == mcStepCount) {
         stopSimulation();
     }
 }
 
-void GrainGrowthGridModel::simulationEnded() {
+void GrainGrowthGridModel::simulationStageEnded() {
     switch (postProcessing) {
         case PostProcessing::MONTE_CARLO:
             stage = SimulationStage::MONTE_CARLO_STAGE;
@@ -247,13 +212,21 @@ void GrainGrowthGridModel::setPostProcessing(PostProcessing processing) {
 }
 
 void GrainGrowthGridModel::setMonteCarloKTFactor(double factor) {
-    monteCarloKTFactor = factor;
+    monteCarloProcessor->setKt(factor);
 }
 
 void GrainGrowthGridModel::setMonteCarloStepCount(int count) {
     mcStepCount = count;
 }
 
-NeighbourhoodService *GrainGrowthGridModel::getNeighbourhoodService() {
-    return neighbourhoodService->reset()->setNeighbourhood(neighbourhood);
+void GrainGrowthGridModel::simulationStep() {
+    if (!processor->process(grid)) {
+        simulationStageEnded();
+    }
+}
+
+void GrainGrowthGridModel::setNeighbourhoodRadius(int radius) {
+    monteCarloProcessor->setNeighbourhoodRadius(radius);
+    //TODO that's ugly, do something
+    dynamic_cast<GrainGrowthProcessor *>(processor)->setNeighbourhoodRadius(radius);
 }

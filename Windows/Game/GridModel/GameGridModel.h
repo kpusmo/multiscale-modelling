@@ -19,19 +19,14 @@ public:
 
     void startSimulation();
 
-    void simulate() override;
-
 public slots:
     void nextStep();
 
 protected:
-    Grid<BinaryCell> previousState;
     bool isRunning{false};
     QTimer *timer{nullptr};
 
     bool isCellSelectionAvailable() override;
-
-    unsigned countLivingSurroundingCells(int i, int j);
 
     void setStartingComposition(const QString &startingComposition);
 

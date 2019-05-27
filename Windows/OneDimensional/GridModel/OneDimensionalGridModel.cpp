@@ -1,6 +1,9 @@
 #include "OneDimensionalGridModel.h"
 #include <QDebug>
 #include <iostream>
+#include <Windows/OneDimensional/Processor/OneDimensionalProcessor.h>
+
+OneDimensionalGridModel::OneDimensionalGridModel() : GridModel(new OneDimensionalProcessor) {}
 
 void OneDimensionalGridModel::setCellCount(unsigned cellCount, int highStateCount) {
     beginResetModel();
@@ -19,21 +22,7 @@ void OneDimensionalGridModel::setSimulationSteps(unsigned simulationSteps) {
 }
 
 void OneDimensionalGridModel::simulate() {
-    if (grid.getWidth() == 0 || grid.getHeight() == 0) {
-        return;
-    }
-    for (int stepCounter = 0; stepCounter < grid.getHeight() - 1; ++stepCounter) {
-        for (auto i = 0; i < grid.getWidth(); ++i) {
-            int cellsMask = grid[stepCounter][i + 1].getState();
-            cellsMask += grid[stepCounter][i].getState() << 1;
-            cellsMask += grid[stepCounter][i - 1].getState() << 2;
-            auto ruleMask = rule >> cellsMask;
-            grid[stepCounter + 1][i].setState(ruleMask & 1);
-        }
-    }
-    QModelIndex topLeft = createIndex(1, 0);
-    QModelIndex bottomRight = createIndex(grid.getHeight() - 1, grid.getWidth() - 1);
-    emit dataChanged(topLeft, bottomRight);
+    processor->process(grid);
 }
 
 bool OneDimensionalGridModel::isCellSelectionAvailable() {
@@ -41,5 +30,6 @@ bool OneDimensionalGridModel::isCellSelectionAvailable() {
 }
 
 void OneDimensionalGridModel::setRule(unsigned r) {
-    rule = r;
+    //TODO that's ugly, do something
+    dynamic_cast<OneDimensionalProcessor *>(processor)->setRule(r);
 }

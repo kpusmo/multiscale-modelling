@@ -1,8 +1,9 @@
 #include "MonteCarloProcessor.h"
+#include <Neighbourhood/TwoDimensionalNeighbourhoodService.h>
 
-MonteCarloProcessor::MonteCarloProcessor() : randomNumberGenerator(randomDevice()) {}
+MonteCarloProcessor::MonteCarloProcessor() : randomNumberGenerator(randomDevice()), Processor(new TwoDimensionalNeighbourhoodService<GrainCell>) {}
 
-bool MonteCarloProcessor::process(Grid<GrainCell> &grid, double kt) {
+bool MonteCarloProcessor::process(Grid<GrainCell> &grid) {
     if (grainBoundaryCells.empty()) {
         initGrainBoundaryCells(grid);
     }
@@ -13,11 +14,7 @@ bool MonteCarloProcessor::process(Grid<GrainCell> &grid, double kt) {
         auto index = getRandomInteger(0, static_cast<int>(cellsToProcess.size() - 1));
         auto cellWithCoordinates = cellsToProcess.begin();
         std::advance(cellWithCoordinates, index);
-        auto cellNeighbourCoordinates = neighbourhoodService
-                ->ignoreFakes(true)
-                ->omitState(-1)
-                ->setMode(NeighbourhoodService::NON_ZERO_ONLY)
-                ->getCellNeighbourCoordinates(grid, cellWithCoordinates->second.first, cellWithCoordinates->second.second);
+        auto cellNeighbourCoordinates = getNeighbourhoodService()->getCellNeighbourCoordinates(grid, cellWithCoordinates->second.first, cellWithCoordinates->second.second);
 
         auto initEnergy = calculateFreeEnergy(grid, *cellWithCoordinates, cellNeighbourCoordinates);
         if (initEnergy == 0) {
@@ -64,7 +61,7 @@ void MonteCarloProcessor::initGrainBoundaryCells(Grid<GrainCell> &grid) {
 }
 
 void MonteCarloProcessor::findGrainBoundaryCells(Grid<GrainCell> &grid, int i, int j) {
-    auto neighbourCoordinates = neighbourhoodService->ignoreFakes(true)->setMode(NeighbourhoodService::NON_ZERO_ONLY)->omitState(grid[i][j].getState())->getCellNeighbourCoordinates(grid, i, j);
+    auto neighbourCoordinates = getNeighbourhoodService()->omitState(grid[i][j].getState())->getCellNeighbourCoordinates(grid, i, j);
     if (!neighbourCoordinates.empty()) {
         grainBoundaryCells.emplace(&grid[i][j], Coordinates(i, j));
     }
@@ -93,11 +90,20 @@ std::vector<int> MonteCarloProcessor::getDifferentStateIndices(const Grid<GrainC
     return indices;
 }
 
-MonteCarloProcessor *MonteCarloProcessor::setNeighbourService(NeighbourhoodService *service) {
-    neighbourhoodService = service;
+void MonteCarloProcessor::reset() {
+    grainBoundaryCells.clear();
+}
+
+NeighbourhoodService<GrainCell> *MonteCarloProcessor::getNeighbourhoodService() {
+    return neighbourhoodService->reset()->setNeighbourhood(neighbourhood)->setRadius(neighbourhoodRadius)->setMode(NeighbourhoodService<GrainCell>::NON_ZERO_ONLY)->ignoreFakes(true);
+}
+
+MonteCarloProcessor *MonteCarloProcessor::setKt(double ktFactor) {
+    kt = ktFactor;
     return this;
 }
 
-void MonteCarloProcessor::reset() {
-    grainBoundaryCells.clear();
+MonteCarloProcessor *MonteCarloProcessor::setNeighbourhoodRadius(int radius) {
+    neighbourhoodRadius = radius;
+    return this;
 }
