@@ -183,9 +183,9 @@ CoordinatesVector GrainGrowthGridModel::getCoordinatesOfAvailableCells(bool **ma
     return availableCells;
 }
 
-void GrainGrowthGridModel::setNeighbourhood(Neighbourhood neighbourhood) {
-    processor->setNeighbourhood(neighbourhood);
-    monteCarloProcessor->setNeighbourhood(neighbourhood);
+void GrainGrowthGridModel::setNeighbourhoodTransferObject(Neighbourhood neighbourhood, int radius) {
+    processor->setNeighbourhoodTransferObject(new NeighbourhoodTransferObject<GrainCell>(grid, neighbourhood, radius));
+    monteCarloProcessor->setNeighbourhoodTransferObject(new NeighbourhoodTransferObject<GrainCell>(grid, neighbourhood, radius));
 }
 
 void GrainGrowthGridModel::monteCarloStep() {
@@ -223,10 +223,4 @@ void GrainGrowthGridModel::simulationStep() {
     if (!processor->process(grid)) {
         simulationStageEnded();
     }
-}
-
-void GrainGrowthGridModel::setNeighbourhoodRadius(int radius) {
-    monteCarloProcessor->setNeighbourhoodRadius(radius);
-    //TODO that's ugly, do something
-    dynamic_cast<GrainGrowthProcessor *>(processor)->setNeighbourhoodRadius(radius);
 }

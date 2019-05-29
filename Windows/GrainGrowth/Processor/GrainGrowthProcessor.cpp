@@ -1,7 +1,12 @@
 #include "GrainGrowthProcessor.h"
+#include <mutex>
+#include <Windows/GrainGrowth/Processor/Threads/RadiusGrainGrowthThread.h>
+
+const int GrainGrowthProcessor::MAX_CELLS_PER_THREAD = 500;
+const int GrainGrowthProcessor::MAX_THREAD_COUNT = 12;
 
 bool GrainGrowthProcessor::process(Grid<GrainCell> &grid) {
-    if (neighbourhood != Neighbourhood::RADIUS) {
+    if (neighbourhoodTransferObject->getNeighbourhood() != Neighbourhood::RADIUS) {
         return BaseGrainGrowthProcessor::process(grid);
     }
 
@@ -9,37 +14,33 @@ bool GrainGrowthProcessor::process(Grid<GrainCell> &grid) {
         initCellsToProcess(grid);
     }
 
-    CoordinatesVector touchedCellsCoordinates;
-    for (const auto &coordinates : coordinatesOfCellsToProcess) {
-        auto localTouchedCells = updateZeroCellsInRadius(grid, coordinates);
-        touchedCellsCoordinates.insert(touchedCellsCoordinates.end(), localTouchedCells.begin(), localTouchedCells.end());
-    }
-    coordinatesOfCellsToProcess.clear();
+    auto cellCount = coordinatesOfCellsToProcess.size();
 
-    for (const auto &coordinates : touchedCellsCoordinates) {
-        auto &cell = grid[coordinates.first][coordinates.second];
-        if (cell.isFake()) {
-            continue;
-        }
-        auto mostFrequentNeighbourCoordinates = cell.getMostFrequentNeighbourCoordinates();
-        cell = grid[mostFrequentNeighbourCoordinates.coordinates.first][mostFrequentNeighbourCoordinates.coordinates.second];
-        cell.clearNeighbourMap();
-        coordinatesOfCellsToProcess.push_back(coordinates);
+    int threadCount = cellCount / MAX_CELLS_PER_THREAD;
+    threadCount = std::min(threadCount, MAX_THREAD_COUNT);
+    threadCount = std::max(threadCount, 1);
+    int chunkSize = cellCount / threadCount;
+    int reminder = cellCount % threadCount;
+
+    std::vector<CoordinatesVector> results;
+    results.assign(threadCount, {});
+    std::mutex mutex;
+    ThreadVector threads;
+    threads.reserve(threadCount);
+
+    for (int i = 0; i < threadCount; ++i) {
+        auto currentReminder = i == threadCount - 1 ? reminder : 0;
+        threads.emplace_back(RadiusGrainGrowthThread(grid, *neighbourhoodTransferObject, mutex), i, chunkSize, currentReminder, &coordinatesOfCellsToProcess, &results[i]);
     }
 
-    return !touchedCellsCoordinates.empty();
-}
-
-CoordinatesVector GrainGrowthProcessor::updateZeroCellsInRadius(Grid<GrainCell> &grid, Coordinates cellCoordinates) {
-    CoordinatesVector cellsCoordinates;
-    auto neighbourCoordinates = getNeighbourhoodService()->getCellNeighbourCoordinates(grid, cellCoordinates.first, cellCoordinates.second);
-    for (auto coordinates : neighbourCoordinates) {
-        auto isFirstUpdate = grid[coordinates.first][coordinates.second].addNeighbourToMap(grid[cellCoordinates.first][cellCoordinates.second], cellCoordinates);
-        if (isFirstUpdate) {
-            cellsCoordinates.push_back(coordinates);
-        }
+    CoordinatesVector coordinatesForNextIteration;
+    for (int i = 0; i < threadCount; ++i) {
+        threads[i].join();
+        coordinatesForNextIteration.insert(coordinatesForNextIteration.end(), results[i].begin(), results[i].end());
     }
-    return cellsCoordinates;
+    coordinatesOfCellsToProcess = std::move(coordinatesForNextIteration);
+
+    return !coordinatesOfCellsToProcess.empty();
 }
 
 void GrainGrowthProcessor::initCellsToProcess(Grid<GrainCell> &grid) {
@@ -51,18 +52,6 @@ void GrainGrowthProcessor::initCellsToProcess(Grid<GrainCell> &grid) {
             }
         }
     }
-}
-
-NeighbourhoodService<GrainCell> *GrainGrowthProcessor::getNeighbourhoodService() {
-    if (neighbourhood != Neighbourhood::RADIUS) {
-        return BaseGrainGrowthProcessor::getNeighbourhoodService();
-    }
-    return neighbourhoodService->reset()->setNeighbourhood(neighbourhood)->ignoreFakes(true)->setMode(NeighbourhoodService<GrainCell>::ZERO_ONLY)->setRadius(neighbourhoodRadius);
-}
-
-GrainGrowthProcessor *GrainGrowthProcessor::setNeighbourhoodRadius(int radius) {
-    neighbourhoodRadius = radius;
-    return this;
 }
 
 void GrainGrowthProcessor::reset() {

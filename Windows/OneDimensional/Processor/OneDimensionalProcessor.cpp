@@ -1,5 +1,5 @@
 #include "OneDimensionalProcessor.h"
-#include <Neighbourhood/OneDimensionalNeighbourhoodService.h>
+#include <Neighbourhood/Service/OneDimensionalNeighbourhoodService.h>
 
 OneDimensionalProcessor::OneDimensionalProcessor() : Processor(new OneDimensionalNeighbourhoodService<BinaryCell>) {}
 
@@ -9,7 +9,7 @@ bool OneDimensionalProcessor::process(Grid<BinaryCell> &grid) {
     }
     for (int stepCounter = 0; stepCounter < grid.getHeight() - 1; ++stepCounter) {
         for (auto i = 0; i < grid.getWidth(); ++i) {
-            auto neighboursCoordinates = getNeighbourhoodService()->getCellNeighbourCoordinates(grid, stepCounter, i);
+            auto neighboursCoordinates = neighbourhoodService->getCellNeighbourCoordinates(getNeighbourhoodTransferObject()->setCoordinates(Coordinates(stepCounter, i)));
             unsigned cellMask = 0;
             for (unsigned k = 0; k < neighboursCoordinates.size(); ++k) {
                 const auto &coordinates = neighboursCoordinates[k];
@@ -22,13 +22,13 @@ bool OneDimensionalProcessor::process(Grid<BinaryCell> &grid) {
     return true;
 }
 
-NeighbourhoodService<BinaryCell> *OneDimensionalProcessor::getNeighbourhoodService() {
-    return neighbourhoodService->reset()->setNeighbourhood(Neighbourhood::VON_NEUMNANN);
-}
-
 void OneDimensionalProcessor::reset() {}
 
 OneDimensionalProcessor *OneDimensionalProcessor::setRule(unsigned r) {
     rule = r;
     return this;
+}
+
+NeighbourhoodTransferObject<BinaryCell> *OneDimensionalProcessor::getNeighbourhoodTransferObject() {
+    return neighbourhoodTransferObject;
 }

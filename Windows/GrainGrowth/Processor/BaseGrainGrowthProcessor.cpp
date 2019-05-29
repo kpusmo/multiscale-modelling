@@ -1,51 +1,45 @@
 #include "BaseGrainGrowthProcessor.h"
-#include <Neighbourhood/TwoDimensionalNeighbourhoodService.h>
+#include <Neighbourhood/Service/TwoDimensionalNeighbourhoodService.h>
+#include <Windows/GrainGrowth/Processor/Threads/GrainGrowthThread.h>
+#include <boost/thread/barrier.hpp>
 
-BaseGrainGrowthProcessor::BaseGrainGrowthProcessor() : Processor<GrainCell>(new TwoDimensionalNeighbourhoodService<GrainCell>) {}
+const int BaseGrainGrowthProcessor::MAX_CELLS_PER_THREAD = 10000;
+const int BaseGrainGrowthProcessor::MAX_THREAD_COUNT = 12;
+
+BaseGrainGrowthProcessor::BaseGrainGrowthProcessor() : Processor(new TwoDimensionalNeighbourhoodService<GrainCell>) {}
 
 bool BaseGrainGrowthProcessor::process(Grid<GrainCell> &grid) {
-    if (previousState.getHeight() == 0) {
-        previousState = grid;
+    auto gridSize = grid.getHeight() * grid.getWidth();
+    int threadCount = gridSize / MAX_CELLS_PER_THREAD;
+    threadCount = std::min(threadCount, MAX_THREAD_COUNT);
+    threadCount = std::max(threadCount, 1);
+    int chunkSize = gridSize / threadCount;
+    int reminder = gridSize % threadCount;
+
+    std::vector<unsigned short> results;
+    results.assign(threadCount, 0);
+    boost::barrier barrier(threadCount);
+    ThreadVector threads;
+    threads.reserve(threadCount);
+
+    for (int i = 0; i < threadCount; ++i) {
+        auto currentReminder = i == threadCount - 1 ? reminder : 0;
+        threads.emplace_back(GrainGrowthThread(grid, *neighbourhoodTransferObject, barrier), i, chunkSize, currentReminder, &results[i]);
     }
-    bool touched = false;
-    for (int i = 0; i < grid.getHeight(); ++i) {
-        for (int j = 0; j < grid.getWidth(); ++j) {
-            if (grid[i][j].getState() != 0) {
-                continue;
-            }
-            auto mostFrequentNeighbourCell = findMostFrequentNeighbourCell(grid, i, j);
-            if (mostFrequentNeighbourCell != nullptr) {
-                touched = true;
-                grid[i][j] = *mostFrequentNeighbourCell;
-            }
+
+    auto touched = false;
+    for (int i = 0; i < threadCount; ++i) {
+        threads[i].join();
+        if (results[i]) {
+            touched = true;
         }
     }
-    previousState = grid;
+
     return touched;
 }
 
-const GrainCell *BaseGrainGrowthProcessor::findMostFrequentNeighbourCell(Grid<GrainCell> &grid, int i, int j) {
-    initCellNeighbourMap(grid, i, j);
-    auto coordinates = grid[i][j].getMostFrequentNeighbourCoordinates();
-    grid[i][j].clearNeighbourMap();
-    const auto &cell = grid[coordinates.coordinates.first][coordinates.coordinates.second];
-    if (coordinates.state == -1 || cell.isFake()) {
-        return nullptr;
-    }
-    return &grid[coordinates.coordinates.first][coordinates.coordinates.second];
-}
+void BaseGrainGrowthProcessor::reset() {}
 
-void BaseGrainGrowthProcessor::initCellNeighbourMap(Grid<GrainCell> &grid, int i, int j) {
-    auto neighbourCoordinates = getNeighbourhoodService()->getCellNeighbourCoordinates(grid, i, j);
-    for (const auto &coordinates : neighbourCoordinates) {
-        grid[i][j].addNeighbourToMap(previousState[coordinates.first][coordinates.second], coordinates);
-    }
-}
-
-NeighbourhoodService<GrainCell> *BaseGrainGrowthProcessor::getNeighbourhoodService() {
-    return neighbourhoodService->reset()->setNeighbourhood(neighbourhood)->ignoreFakes(true)->setMode(NeighbourhoodService<GrainCell>::NON_ZERO_ONLY);
-}
-
-void BaseGrainGrowthProcessor::reset() {
-    previousState.reset(0, 0);
+NeighbourhoodTransferObject<GrainCell> *BaseGrainGrowthProcessor::getNeighbourhoodTransferObject() {
+    return neighbourhoodTransferObject;
 }

@@ -21,6 +21,10 @@ public:
 
     unsigned getState() const;
 
+    unsigned getPreviousState() const;
+
+    void resetPreviousState();
+
     QColor getColor() const;
 
     const RealCoordinates &getCenterOfGravity() const;
@@ -32,10 +36,10 @@ public:
     bool operator==(const GrainCell &other) const; //for std::map
 
     /**
-     * @param cell
+     * @param cellState
      * @return true if map was empty, false otherwise
      */
-    bool addNeighbourToMap(const GrainCell &cell, Coordinates coordinates);
+    bool addStateToMap(int cellState, Coordinates coordinates);
 
     StateWithCoordinates getMostFrequentNeighbourCoordinates() const;
 
@@ -51,11 +55,10 @@ protected:
     /** From upper left corner */
     RealCoordinates centerOfGravity;
     unsigned state;
+    unsigned previousState;
     QColor color;
     NeighbourStateCountMap neighbourStateMap{};
     bool fake{false};
-    std::random_device randomDevice;
-    std::mt19937 randomNumberGenerator;
 
     void setCenterOfGravity();
 };

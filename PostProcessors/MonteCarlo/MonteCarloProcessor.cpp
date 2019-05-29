@@ -1,55 +1,41 @@
 #include "MonteCarloProcessor.h"
-#include <Neighbourhood/TwoDimensionalNeighbourhoodService.h>
+#include <Neighbourhood/Service/TwoDimensionalNeighbourhoodService.h>
+#include <PostProcessors/MonteCarlo/Thread/MonteCarloThread.h>
 
-MonteCarloProcessor::MonteCarloProcessor() : randomNumberGenerator(randomDevice()), Processor(new TwoDimensionalNeighbourhoodService<GrainCell>) {}
+const int MonteCarloProcessor::MAX_CELLS_PER_THREAD = 500;
+const int MonteCarloProcessor::MAX_THREAD_COUNT = 12;
+
+MonteCarloProcessor::MonteCarloProcessor() : Processor(new TwoDimensionalNeighbourhoodService<GrainCell>) {}
 
 bool MonteCarloProcessor::process(Grid<GrainCell> &grid) {
     if (grainBoundaryCells.empty()) {
         initGrainBoundaryCells(grid);
     }
-    qDebug() << grainBoundaryCells.size();
-    bool touched = false;
-    auto cellsToProcess = std::move(grainBoundaryCells);
-    while (!cellsToProcess.empty()) {
-        auto index = getRandomInteger(0, static_cast<int>(cellsToProcess.size() - 1));
-        auto cellWithCoordinates = cellsToProcess.begin();
-        std::advance(cellWithCoordinates, index);
-        auto cellNeighbourCoordinates = getNeighbourhoodService()->getCellNeighbourCoordinates(grid, cellWithCoordinates->second.first, cellWithCoordinates->second.second);
 
-        auto initEnergy = calculateFreeEnergy(grid, *cellWithCoordinates, cellNeighbourCoordinates);
-        if (initEnergy == 0) {
-            cellsToProcess.erase(cellWithCoordinates);
-            continue;
-        }
+    auto cellCount = grainBoundaryCells.size();
+    int threadCount = cellCount / MAX_CELLS_PER_THREAD;
+    threadCount = std::min(threadCount, MAX_THREAD_COUNT);
+    threadCount = std::max(threadCount, 1);
+    int chunkSize = cellCount / threadCount;
+    int reminder = cellCount % threadCount;
 
-        auto randomNeighbour = getRandomNeighbourWithDifferentState(grid, *cellWithCoordinates, cellNeighbourCoordinates);
-        auto fakeNewStateCellWithCoordinates = CellCoordinatesPair(randomNeighbour, cellWithCoordinates->second);
-        auto newEnergy = calculateFreeEnergy(grid, fakeNewStateCellWithCoordinates, cellNeighbourCoordinates);
-
-        auto dE = newEnergy - initEnergy;
-        auto probability = exp(-dE / kt);
-        auto shot = getRandomRealNumber(0., 1.);
-        if (shot <= probability) {
-            touched = true;
-            *(cellWithCoordinates->first) = *randomNeighbour;
-            findGrainBoundaryCells(grid, cellWithCoordinates->second.first, cellWithCoordinates->second.second);
-        }
-
-        cellsToProcess.erase(cellWithCoordinates);
+    ThreadVector threads;
+    std::vector<CoordinatesCellSet> results;
+    threads.reserve(threadCount);
+    results.assign(threadCount, {});
+    for (int i = 0; i < threadCount; ++i) {
+        auto currentReminder = i == threadCount - 1 ? reminder : 0;
+        threads.emplace_back(MonteCarloThread(grid, *neighbourhoodTransferObject, kt), i, chunkSize, currentReminder, &grainBoundaryCells, &results[i]);
     }
-    return touched;
-}
 
-int MonteCarloProcessor::calculateFreeEnergy(const Grid<GrainCell> &grid, const CellCoordinatesPair &cellWithCoordinates, const CoordinatesVector &neighbourCoordinates) {
-    auto indices = getDifferentStateIndices(grid, cellWithCoordinates, neighbourCoordinates);
-    return static_cast<int>(indices.size());
-}
+    CoordinatesCellSet cellsForNextIteration;
+    for (int i = 0; i < threadCount; ++i) {
+        threads[i].join();
+        cellsForNextIteration.merge(results[i]);
+    }
+    grainBoundaryCells = std::move(cellsForNextIteration);
 
-GrainCell *MonteCarloProcessor::getRandomNeighbourWithDifferentState(Grid<GrainCell> &grid, const CellCoordinatesPair &cellWithCoordinates, const CoordinatesVector &neighbourCoordinates) {
-    auto indices = getDifferentStateIndices(grid, cellWithCoordinates, neighbourCoordinates);
-    auto chosenIndex = getRandomInteger(0, static_cast<int>(indices.size() - 1));
-    auto coordinates = neighbourCoordinates[indices[chosenIndex]];
-    return &grid[coordinates.first][coordinates.second];
+    return !grainBoundaryCells.empty();
 }
 
 void MonteCarloProcessor::initGrainBoundaryCells(Grid<GrainCell> &grid) {
@@ -61,7 +47,7 @@ void MonteCarloProcessor::initGrainBoundaryCells(Grid<GrainCell> &grid) {
 }
 
 void MonteCarloProcessor::findGrainBoundaryCells(Grid<GrainCell> &grid, int i, int j) {
-    auto neighbourCoordinates = getNeighbourhoodService()->omitState(grid[i][j].getState())->getCellNeighbourCoordinates(grid, i, j);
+    auto neighbourCoordinates = neighbourhoodService->getCellNeighbourCoordinates(getNeighbourhoodTransferObject()->omitState(grid[i][j].getState())->setCoordinates(Coordinates(i, j)));
     if (!neighbourCoordinates.empty()) {
         grainBoundaryCells.emplace(&grid[i][j], Coordinates(i, j));
     }
@@ -71,31 +57,12 @@ void MonteCarloProcessor::findGrainBoundaryCells(Grid<GrainCell> &grid, int i, i
     }
 }
 
-int MonteCarloProcessor::getRandomInteger(int min, int max) {
-    return std::uniform_int_distribution<>{min, max}(randomNumberGenerator);
-}
-
-double MonteCarloProcessor::getRandomRealNumber(double min, double max) {
-    return std::uniform_real_distribution<>{min, max}(randomNumberGenerator);
-}
-
-std::vector<int> MonteCarloProcessor::getDifferentStateIndices(const Grid<GrainCell> &grid, const CellCoordinatesPair &cellWithCoordinates, const CoordinatesVector &neighbourCoordinates) {
-    std::vector<int> indices;
-    for (int i = 0; i < neighbourCoordinates.size(); ++i) {
-        const auto &neighbour = grid[neighbourCoordinates[i].first][neighbourCoordinates[i].second];
-        if (neighbour.getState() != cellWithCoordinates.first->getState()) {
-            indices.push_back(i);
-        }
-    }
-    return indices;
-}
-
 void MonteCarloProcessor::reset() {
     grainBoundaryCells.clear();
 }
 
-NeighbourhoodService<GrainCell> *MonteCarloProcessor::getNeighbourhoodService() {
-    return neighbourhoodService->reset()->setNeighbourhood(neighbourhood)->setRadius(neighbourhoodRadius)->setMode(NeighbourhoodService<GrainCell>::NON_ZERO_ONLY)->ignoreFakes(true);
+NeighbourhoodTransferObject<GrainCell> *MonteCarloProcessor::getNeighbourhoodTransferObject() {
+    return neighbourhoodTransferObject->reset()->setMode(NeighbourhoodTransferObjectMode::NON_ZERO_ONLY)->ignoreFakes(true);
 }
 
 MonteCarloProcessor *MonteCarloProcessor::setKt(double ktFactor) {

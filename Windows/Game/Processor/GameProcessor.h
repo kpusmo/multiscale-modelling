@@ -1,8 +1,8 @@
 #ifndef WIELOSKALOWE_GAMEPROCESSOR_H
 #define WIELOSKALOWE_GAMEPROCESSOR_H
 
-#include <Cells/BinaryCell.h>
 #include <AbstractProcessor/Processor.h>
+#include <Cells/BinaryCell.h>
 
 class GameProcessor : public Processor<BinaryCell> {
 public:
@@ -15,9 +15,9 @@ public:
 protected:
     Grid<BinaryCell> previousState;
 
-    NeighbourhoodService<BinaryCell> *getNeighbourhoodService() override;
-
     unsigned countLivingSurroundingCells(Grid<BinaryCell> &grid, int a, int b);
+
+    NeighbourhoodTransferObject<BinaryCell> *getNeighbourhoodTransferObject() override;
 };
 
 

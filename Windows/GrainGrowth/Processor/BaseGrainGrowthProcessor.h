@@ -5,6 +5,9 @@
 #include <Cells/GrainCell.h>
 #include <AbstractProcessor/Processor.h>
 
+/**
+ * Processor for common neighbourhoods
+ */
 class BaseGrainGrowthProcessor : public Processor<GrainCell> {
 public:
     BaseGrainGrowthProcessor();
@@ -14,14 +17,11 @@ public:
     void reset() override;
 
 protected:
-    Grid<GrainCell> previousState;
-
-    NeighbourhoodService<GrainCell> *getNeighbourhoodService() override;
+    NeighbourhoodTransferObject<GrainCell> *getNeighbourhoodTransferObject() override;
 
 private:
-    const GrainCell *findMostFrequentNeighbourCell(Grid<GrainCell> &grid, int i, int j);
-
-    void initCellNeighbourMap(Grid<GrainCell> &grid, int i, int j);
+    static const int MAX_CELLS_PER_THREAD;
+    static const int MAX_THREAD_COUNT;
 };
 
 

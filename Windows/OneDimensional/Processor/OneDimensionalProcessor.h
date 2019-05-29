@@ -15,7 +15,7 @@ public:
     OneDimensionalProcessor *setRule(unsigned r);
 
 protected:
-    NeighbourhoodService<BinaryCell> *getNeighbourhoodService() override;
+    NeighbourhoodTransferObject<BinaryCell> *getNeighbourhoodTransferObject() override;
     unsigned rule{};
 };
 

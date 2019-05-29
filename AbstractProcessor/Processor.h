@@ -1,30 +1,32 @@
 #ifndef WIELOSKALOWE_PROCESSOR_H
 #define WIELOSKALOWE_PROCESSOR_H
 
-#include <Neighbourhood/NeighbourhoodService.h>
+#include <Neighbourhood/Service/NeighbourhoodService.h>
 
 template<typename T>
 class Processor {
 public:
     explicit Processor(NeighbourhoodService<T> *service) : neighbourhoodService(service) {}
 
-    ~Processor() {
+    virtual ~Processor() {
         delete neighbourhoodService;
+        delete neighbourhoodTransferObject;
     }
 
     virtual bool process(Grid<T> &grid) = 0;
 
     virtual void reset() = 0;
 
-    Processor *setNeighbourhood(Neighbourhood newNeighbourhood) {
-        neighbourhood = newNeighbourhood;
+    Processor *setNeighbourhoodTransferObject(NeighbourhoodTransferObject<T> *dto) {
+        neighbourhoodTransferObject = dto;
+        return this;
     }
 
 protected:
     NeighbourhoodService<T> *neighbourhoodService;
-    Neighbourhood neighbourhood{};
+    NeighbourhoodTransferObject<T> *neighbourhoodTransferObject{nullptr};
 
-    virtual NeighbourhoodService<T> *getNeighbourhoodService() = 0;
+    virtual NeighbourhoodTransferObject<T> *getNeighbourhoodTransferObject() = 0;
 };
 
 #endif //WIELOSKALOWE_PROCESSOR_H

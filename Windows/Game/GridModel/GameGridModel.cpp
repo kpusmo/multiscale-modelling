@@ -3,7 +3,7 @@
 
 GameGridModel::GameGridModel() : timer(new QTimer(this)), GridModel(new GameProcessor) {
     connect(timer, SIGNAL(timeout()), SLOT(nextStep()));
-    processor->setNeighbourhood(Neighbourhood::VON_NEUMNANN);
+    processor->setNeighbourhoodTransferObject(new NeighbourhoodTransferObject<BinaryCell>(grid, Neighbourhood::MOORE));
 }
 
 GameGridModel::~GameGridModel() {

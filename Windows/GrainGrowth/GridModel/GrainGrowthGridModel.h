@@ -6,7 +6,7 @@
 #include <Cells/GrainCell.h>
 #include <QTimer>
 #include <Neighbourhood/Neighbourhood.h>
-#include <Neighbourhood/TwoDimensionalNeighbourhoodService.h>
+#include <Neighbourhood/Service/TwoDimensionalNeighbourhoodService.h>
 #include <memory>
 #include <PostProcessors/MonteCarlo/MonteCarloProcessor.h>
 
@@ -35,9 +35,8 @@ public:
 
     void drawGrid(unsigned height, unsigned width);
 
-    void setNeighbourhood(Neighbourhood neighbourhood);
+    void setNeighbourhoodTransferObject(Neighbourhood neighbourhood, int radius);
 
-    void setNeighbourhoodRadius(int radius);
 
     /**
      * Sets state of count cells as non-zero. If positive radius provided, there will not be more than one non-zero cell in given radius.

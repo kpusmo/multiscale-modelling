@@ -4,7 +4,6 @@
 #include <QColor>
 #include <Types/Types.h>
 
-
 class BinaryCell {
 public:
     BinaryCell() = default;

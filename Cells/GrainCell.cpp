@@ -6,29 +6,35 @@
 unsigned GrainCell::nextState = 1;
 ColorMap GrainCell::usedColors = ColorMap();
 
-GrainCell::GrainCell() : state(0), color(QColor(255, 255, 255)), randomNumberGenerator(randomDevice()) {
+GrainCell::GrainCell() : state(0), previousState(0), color(QColor(255, 255, 255)) {
     setCenterOfGravity();
 }
 
-GrainCell::GrainCell(bool isFake) : fake(isFake), state(0), color(QColor(255, 255, 255)), randomNumberGenerator(randomDevice()) {}
+GrainCell::GrainCell(bool isFake) : fake(isFake), state(0), previousState(0), color(QColor(255, 255, 255)) {}
 
-GrainCell::GrainCell(const GrainCell &other) : randomNumberGenerator(randomDevice()) {
+GrainCell::GrainCell(const GrainCell &other) {
     state = other.state;
+    previousState = other.previousState;
     color = QColor(other.color);
     setCenterOfGravity();
 }
 
 void GrainCell::setCenterOfGravity() {
     std::uniform_real_distribution<> distribution(0, 1);
+    std::random_device randomDevice;
+    std::mt19937 randomNumberGenerator(randomDevice());
     centerOfGravity.first = distribution(randomNumberGenerator);
     centerOfGravity.second = distribution(randomNumberGenerator);
 }
 
 void GrainCell::changeState() {
     state = nextState++;
+    previousState = state;
 
     std::uniform_int_distribution<> distribution(0, 255);
     RgbColor rgbColor{};
+    std::random_device randomDevice;
+    std::mt19937 randomNumberGenerator(randomDevice());
     do {
         rgbColor.r = distribution(randomNumberGenerator);
         rgbColor.g = distribution(randomNumberGenerator);
@@ -42,14 +48,22 @@ unsigned GrainCell::getState() const {
     return state;
 }
 
+unsigned GrainCell::getPreviousState() const {
+    return previousState;
+}
+
+void GrainCell::resetPreviousState() {
+    previousState = state;
+}
+
 QColor GrainCell::getColor() const {
     return color;
 }
 
 GrainCell &GrainCell::operator=(const GrainCell &other) {
+    previousState = state;
     state = other.state;
     color = QColor(other.color);
-    centerOfGravity = other.centerOfGravity;
     return *this;
 }
 
@@ -70,9 +84,8 @@ const RealCoordinates &GrainCell::getCenterOfGravity() const {
     return centerOfGravity;
 }
 
-bool GrainCell::addNeighbourToMap(const GrainCell &cell, Coordinates coordinates) {
+bool GrainCell::addStateToMap(int cellState, Coordinates coordinates) {
     auto isEmpty = neighbourStateMap.empty();
-    int cellState = cell.getState();
     if (cellState != 0) {
         auto key = StateWithCoordinates{cellState, coordinates};
         neighbourStateMap[key]++;
@@ -104,4 +117,3 @@ void GrainCell::resetColorsAndState() {
 bool GrainCell::isFake() const {
     return fake;
 }
-

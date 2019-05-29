@@ -42,11 +42,8 @@ void GrainGrowthWindow::on_drawButton_clicked() {
 void GrainGrowthWindow::on_simulateButton_clicked() {
     auto periodicalBc = ui->periodicalBcRadioButton->isChecked();
     auto neighbourhood = getChosenNeighbourhood();
-    gridModel.setNeighbourhood(neighbourhood);
-    if (neighbourhood == Neighbourhood::RADIUS) {
-        auto neighbourhoodRadius = ui->radiusNeighbourhoodInput->value();
-        gridModel.setNeighbourhoodRadius(neighbourhoodRadius);
-    }
+    auto neighbourhoodRadius = ui->radiusNeighbourhoodInput->value();
+    gridModel.setNeighbourhoodTransferObject(neighbourhood, neighbourhoodRadius);
 
     auto postProcessing = ui->postProcessingSelect->currentText();
     if (postProcessing == "None") {

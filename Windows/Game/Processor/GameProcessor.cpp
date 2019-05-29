@@ -1,5 +1,5 @@
 #include "GameProcessor.h"
-#include <Neighbourhood/TwoDimensionalNeighbourhoodService.h>
+#include <Neighbourhood/Service/TwoDimensionalNeighbourhoodService.h>
 
 GameProcessor::GameProcessor() : Processor(new TwoDimensionalNeighbourhoodService<BinaryCell>) {}
 
@@ -22,13 +22,9 @@ bool GameProcessor::process(Grid<BinaryCell> &grid) {
     return true;
 }
 
-NeighbourhoodService<BinaryCell> *GameProcessor::getNeighbourhoodService() {
-    return neighbourhoodService->reset()->setNeighbourhood(Neighbourhood::MOORE);
-}
-
 unsigned GameProcessor::countLivingSurroundingCells(Grid<BinaryCell> &grid, int a, int b) {
     unsigned count = 0;
-    auto neighbourCoordinates = getNeighbourhoodService()->getCellNeighbourCoordinates(grid, a, b);
+    auto neighbourCoordinates = neighbourhoodService->getCellNeighbourCoordinates(getNeighbourhoodTransferObject()->setCoordinates(Coordinates(a, b)));
     for (const auto &coordinates : neighbourCoordinates) {
         count += previousState[coordinates.first][coordinates.second].getState();
     }
@@ -37,4 +33,8 @@ unsigned GameProcessor::countLivingSurroundingCells(Grid<BinaryCell> &grid, int 
 
 void GameProcessor::reset() {
     previousState.reset(0, 0);
+}
+
+NeighbourhoodTransferObject<BinaryCell> *GameProcessor::getNeighbourhoodTransferObject() {
+    return neighbourhoodTransferObject;
 }

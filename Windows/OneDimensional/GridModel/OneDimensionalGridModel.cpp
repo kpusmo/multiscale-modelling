@@ -22,7 +22,7 @@ void OneDimensionalGridModel::setSimulationSteps(unsigned simulationSteps) {
 }
 
 void OneDimensionalGridModel::simulate() {
-    processor->process(grid);
+    processor->setNeighbourhoodTransferObject(new NeighbourhoodTransferObject<BinaryCell>(grid, Neighbourhood::VON_NEUMNANN))->process(grid);
 }
 
 bool OneDimensionalGridModel::isCellSelectionAvailable() {

@@ -1,25 +1,27 @@
 #ifndef WIELOSKALOWE_ONEDIMENSIONALNEIGHBOURHOODSERVICE_H
 #define WIELOSKALOWE_ONEDIMENSIONALNEIGHBOURHOODSERVICE_H
 
-#include <Neighbourhood/NeighbourhoodService.h>
+#include <Neighbourhood/Service/NeighbourhoodService.h>
 
 template<typename T>
 class OneDimensionalNeighbourhoodService : public NeighbourhoodService<T> {
 public:
-    CoordinatesVector getCellNeighbourCoordinates(const Grid<T> &grid, int i, int j) override;
+    CoordinatesVector getCellNeighbourCoordinates(const NeighbourhoodTransferObject<T> *dto) override;
+    
+    ~OneDimensionalNeighbourhoodService() override = default;
 };
 
 template<typename T>
-CoordinatesVector OneDimensionalNeighbourhoodService<T>::getCellNeighbourCoordinates(const Grid<T> &grid, int i, int j) {
+CoordinatesVector OneDimensionalNeighbourhoodService<T>::getCellNeighbourCoordinates(const NeighbourhoodTransferObject<T> *dto) {
+    auto coordinates = dto->getCoordinates();
     CoordinatesVector neighbourCoordinates;
-    auto localNeighbourhood = this->getLocalNeighbourhood();
-    switch (localNeighbourhood) {
+    switch (dto->getNeighbourhood()) {
         case Neighbourhood::VON_NEUMNANN:
-            neighbourCoordinates.emplace_back(i, j - 1);
-            neighbourCoordinates.emplace_back(i, j);
-            neighbourCoordinates.emplace_back(i, j + 1);
+            neighbourCoordinates.emplace_back(coordinates.first, coordinates.second - 1);
+            neighbourCoordinates.emplace_back(coordinates.first, coordinates.second);
+            neighbourCoordinates.emplace_back(coordinates.first, coordinates.second + 1);
             break;
-        //TODO rest of neighbourhoods
+            //TODO rest of neighbourhoods, modes, etc.
         case MOORE:break;
         case RADIUS:break;
         case PENTAGONAL_TOP:break;

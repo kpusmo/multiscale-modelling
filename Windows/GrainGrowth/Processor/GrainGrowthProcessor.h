@@ -4,24 +4,23 @@
 
 #include <Windows/GrainGrowth/Processor/BaseGrainGrowthProcessor.h>
 
+/**
+ * Processor for radius neighbourhood
+ */
 class GrainGrowthProcessor : public BaseGrainGrowthProcessor {
 public:
     bool process(Grid<GrainCell> &grid) override;
-
-    GrainGrowthProcessor *setNeighbourhoodRadius(int radius);
 
     void reset() override;
 
 protected:
     CoordinatesVector coordinatesOfCellsToProcess;
-    int neighbourhoodRadius{};
-
-    NeighbourhoodService<GrainCell> *getNeighbourhoodService() override;
 
 private:
-    void initCellsToProcess(Grid<GrainCell> &grid);
+    static const int MAX_CELLS_PER_THREAD;
+    static const int MAX_THREAD_COUNT;
 
-    CoordinatesVector updateZeroCellsInRadius(Grid<GrainCell> &grid, Coordinates cellCoordinates);
+    void initCellsToProcess(Grid<GrainCell> &grid);
 };
 
 
