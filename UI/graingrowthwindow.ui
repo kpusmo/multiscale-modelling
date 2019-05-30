@@ -447,6 +447,13 @@
         </widget>
        </widget>
       </item>
+      <item row="17" column="0" colspan="2">
+       <widget class="QPushButton" name="toggleViewModeButton">
+        <property name="text">
+         <string>Ziarna/Energia</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item row="0" column="1">

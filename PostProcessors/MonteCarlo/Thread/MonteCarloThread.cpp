@@ -32,12 +32,14 @@ void MonteCarloThread::operator()(int threadIndex, int chunkSize, int reminder, 
 
         auto initEnergy = calculateFreeEnergy(*cellWithCoordinates, cellNeighbourCoordinates);
         if (initEnergy == 0) {
+            cellWithCoordinates->first->setEnergy(0);
             cellsToProcess.erase(cellWithCoordinates);
             continue;
         }
 
         auto randomNeighbour = getRandomNeighbourWithDifferentState(*cellWithCoordinates, cellNeighbourCoordinates);
         if (randomNeighbour == nullptr) {
+            cellWithCoordinates->first->setEnergy(0);
             cellsToProcess.erase(cellWithCoordinates);
             continue;
         }
@@ -49,6 +51,7 @@ void MonteCarloThread::operator()(int threadIndex, int chunkSize, int reminder, 
         auto probability = exp(-dE / kt);
         auto shot = getRandomRealNumber(0., 1.);
         if (shot <= probability) {
+            cellWithCoordinates->first->setEnergy(newEnergy);
             *(cellWithCoordinates->first) = *randomNeighbour;
             auto coordinatesForNextIteration = findGrainBoundaryCells(cellWithCoordinates->second.first, cellWithCoordinates->second.second);
             for (const auto &coordinates : coordinatesForNextIteration) {

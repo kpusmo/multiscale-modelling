@@ -21,6 +21,8 @@ public slots:
 
     void on_simulateButton_clicked();
 
+    void on_toggleViewModeButton_clicked();
+
     void onStartingCompositionChanged(int currentIndex);
 
     void onNeighbourhoodChanged(int currentIndex);

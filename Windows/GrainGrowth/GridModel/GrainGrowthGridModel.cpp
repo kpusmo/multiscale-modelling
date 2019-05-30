@@ -224,3 +224,27 @@ void GrainGrowthGridModel::simulationStep() {
         simulationStageEnded();
     }
 }
+
+QVariant GrainGrowthGridModel::data(const QModelIndex &index, int role) const {
+    int row = index.row();
+    int column = index.column();
+
+    if (role == Qt::BackgroundRole) {
+        if (viewMode == ViewMode::GRAINS){
+            return grid[row][column].getColor();
+        } else {
+            return grid[row][column].getEnergyColor();
+        }
+    }
+    return QVariant();
+}
+
+void GrainGrowthGridModel::toggleViewMode() {
+    beginResetModel();
+    if (viewMode == ViewMode::GRAINS) {
+        viewMode = ViewMode::ENERGY;
+    } else {
+        viewMode = ViewMode::GRAINS;
+    }
+    endResetModel();
+}

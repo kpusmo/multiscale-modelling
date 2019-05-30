@@ -145,3 +145,7 @@ void GrainGrowthWindow::onPostProcessingChanged(int currentIndex) {
     ui->postProcessingInputGroup->setCurrentIndex(currentIndex);
     ui->postProcessingInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
+
+void GrainGrowthWindow::on_toggleViewModeButton_clicked() {
+    gridModel.toggleViewMode();
+}

@@ -27,6 +27,10 @@ public:
 
     QColor getColor() const;
 
+    void setEnergy(unsigned e);
+
+    QColor getEnergyColor() const;
+
     const RealCoordinates &getCenterOfGravity() const;
 
     GrainCell &operator=(const GrainCell &other);
@@ -49,14 +53,19 @@ public:
 
     bool isFake() const;
 
+
+
 protected:
     static unsigned nextState;
     static ColorMap usedColors;
+    static unsigned maxEnergy;
     /** From upper left corner */
     RealCoordinates centerOfGravity;
-    unsigned state;
-    unsigned previousState;
+    unsigned state{0};
+    unsigned previousState{0};
     QColor color;
+    unsigned energy{0};
+    QColor energyColor{0, 255, 0};
     NeighbourStateCountMap neighbourStateMap{};
     bool fake{false};
 

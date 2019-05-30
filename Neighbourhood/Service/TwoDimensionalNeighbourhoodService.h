@@ -88,8 +88,8 @@ CoordinatesVector TwoDimensionalNeighbourhoodService<T>::getCellNeighbourCoordin
             auto centerOfGravity = grid[i][j].getCenterOfGravity();
             double cy = i + centerOfGravity.first;
             double cx = j + centerOfGravity.second;
-            for (int y = i - neighbourhoodRadius; y < i + neighbourhoodRadius; ++y) {
-                for (int x = j - neighbourhoodRadius; x < j + neighbourhoodRadius; ++x) {
+            for (int y = i - neighbourhoodRadius; y <= i + neighbourhoodRadius; ++y) {
+                for (int x = j - neighbourhoodRadius; x <= j + neighbourhoodRadius; ++x) {
                     if (y == i && x == j) {
                         continue;
                     }
@@ -111,7 +111,7 @@ CoordinatesVector TwoDimensionalNeighbourhoodService<T>::getCellNeighbourCoordin
                     double yy = y + cellCellGravityCenter.first;
                     double xx = x + cellCellGravityCenter.second;
                     auto distance = sqrt(pow(yy - cy, 2) + pow(xx - cx, 2));
-                    if (distance < neighbourhoodRadius) {
+                    if (distance <= neighbourhoodRadius) {
                         neighbourCoordinates.emplace_back(y, x);
                     }
                 }

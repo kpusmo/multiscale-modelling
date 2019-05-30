@@ -14,7 +14,6 @@ enum NeighbourhoodTransferObjectMode {
 template<typename T>
 class NeighbourhoodTransferObject {
 public:
-
     NeighbourhoodTransferObject() = delete;
 
     NeighbourhoodTransferObject(const Grid<T> &g, Neighbourhood n, int radius = 0);

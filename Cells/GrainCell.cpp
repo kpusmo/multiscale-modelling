@@ -4,13 +4,14 @@
 #include <cstdlib>
 
 unsigned GrainCell::nextState = 1;
+unsigned GrainCell::maxEnergy = 1;
 ColorMap GrainCell::usedColors = ColorMap();
 
-GrainCell::GrainCell() : state(0), previousState(0), color(QColor(255, 255, 255)) {
+GrainCell::GrainCell() : color(QColor(255, 255, 255)) {
     setCenterOfGravity();
 }
 
-GrainCell::GrainCell(bool isFake) : fake(isFake), state(0), previousState(0), color(QColor(255, 255, 255)) {}
+GrainCell::GrainCell(bool isFake) : fake(isFake), color(QColor(255, 255, 255)) {}
 
 GrainCell::GrainCell(const GrainCell &other) {
     state = other.state;
@@ -116,4 +117,22 @@ void GrainCell::resetColorsAndState() {
 
 bool GrainCell::isFake() const {
     return fake;
+}
+
+QColor GrainCell::getEnergyColor() const {
+    return energyColor;
+}
+
+void GrainCell::setEnergy(unsigned e) {
+    energy = e;
+    if (e == 0) {
+        energyColor.setRgb(0, 255, 0);
+        return;
+    }
+    if (energy > maxEnergy) {
+        maxEnergy = energy;
+    }
+    auto h = 0, s = 255;
+    int v = 1. * e / maxEnergy * 255;
+    energyColor.setHsv(h, s, v);
 }

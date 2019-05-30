@@ -20,6 +20,11 @@ enum SimulationStage {
     MONTE_CARLO_STAGE
 };
 
+enum ViewMode {
+    GRAINS,
+    ENERGY
+};
+
 class GrainGrowthGridModel : public GridModel<GrainCell> {
 Q_OBJECT
 public:
@@ -60,6 +65,10 @@ public:
 
     void setMonteCarloStepCount(int count);
 
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+
+    void toggleViewMode();
+
 public slots:
     void nextStep();
 
@@ -74,6 +83,7 @@ protected:
     MonteCarloProcessor *monteCarloProcessor;
     PostProcessing postProcessing{PostProcessing::MONTE_CARLO};
     SimulationStage stage{SIMULATION_STAGE};
+    ViewMode viewMode{ViewMode::GRAINS};
     int mcStepCount{};
     int mcSimulationStep{1};
 
