@@ -6,13 +6,14 @@
 
 GrainGrowthGridModel::GrainGrowthGridModel() : GrainGrowthGridModel(new GrainGrowthProcessor) {}
 
-GrainGrowthGridModel::GrainGrowthGridModel(Processor<GrainCell> *p) : GridModel(p), timer(new QTimer(this)), monteCarloProcessor(new MonteCarloProcessor) {
+GrainGrowthGridModel::GrainGrowthGridModel(Processor<GrainCell> *p) : GridModel(p), timer(new QTimer(this)), monteCarloProcessor(new MonteCarloProcessor), drxProcessor(new DrxProcessor) {
     connect(timer, SIGNAL(timeout()), SLOT(nextStep()));
 }
 
 GrainGrowthGridModel::~GrainGrowthGridModel() {
     delete timer;
     delete monteCarloProcessor;
+    delete drxProcessor;
 }
 
 void GrainGrowthGridModel::nextStep() {
@@ -27,29 +28,15 @@ void GrainGrowthGridModel::nextStep() {
         case MONTE_CARLO_STAGE:
             monteCarloStep();
             break;
+        case DRX_STAGE:
+            drxStep();
+            break;
     }
     endResetModel();
 }
 
-void GrainGrowthGridModel::drawGrid(unsigned height, unsigned width) {
-    stopSimulation();
-    beginResetModel();
-    GrainCell::resetColorsAndState();
-    grid.reset(height, width);
-    endResetModel();
-}
-
-void GrainGrowthGridModel::stopSimulation() {
-    mcSimulationStep = 0;
-    stage = SIMULATION_STAGE;
-    monteCarloProcessor->reset();
-    processor->reset();
-    timer->stop();
-    isRunning = false;
-}
-
 void GrainGrowthGridModel::startSimulation(const BoundaryCondition &bc) {
-    if (isRunning) {
+    if (isRunning || grid.getHeight() == 0 || grid.getWidth() == 0) {
         return;
     }
     timer->start(TIMER_INTERVAL);
@@ -57,6 +44,68 @@ void GrainGrowthGridModel::startSimulation(const BoundaryCondition &bc) {
     grid.setBoundaryCondition(bc);
     beginResetModel();
     simulationStep();
+    endResetModel();
+}
+
+void GrainGrowthGridModel::simulationStep() {
+    if (!processor->process(grid)) {
+        stageEnded();
+    }
+}
+
+void GrainGrowthGridModel::monteCarloStep() {
+    if (mcSimulationStep >= mcStepCount) {
+        stageEnded();
+        return;
+    }
+    ++mcSimulationStep;
+    auto result = monteCarloProcessor->process(grid);
+    if (!result) {
+        stageEnded();
+    }
+}
+
+void GrainGrowthGridModel::drxStep() {
+    if (drxSimulationStep >= drxStepCount) {
+        stageEnded();
+        return;
+    }
+    ++drxSimulationStep;
+    beginResetModel();
+    drxProcessor->process(grid);
+    endResetModel();
+}
+
+void GrainGrowthGridModel::stageEnded() {
+    switch (stage) {
+        case SimulationStage::SIMULATION_STAGE:
+            stage = SimulationStage::MONTE_CARLO_STAGE;
+            break;
+        case SimulationStage::MONTE_CARLO_STAGE:
+            stage = SimulationStage::DRX_STAGE;
+            break;
+        case SimulationStage::DRX_STAGE:
+            stopSimulation();
+            break;
+    }
+}
+
+void GrainGrowthGridModel::stopSimulation() {
+    mcSimulationStep = 0;
+    drxSimulationStep = 0;
+    stage = SIMULATION_STAGE;
+    timer->stop();
+    isRunning = false;
+}
+
+void GrainGrowthGridModel::drawGrid(unsigned height, unsigned width) {
+    stopSimulation();
+    monteCarloProcessor->reset();
+    drxProcessor->reset();
+    processor->reset();
+    beginResetModel();
+    GrainCell::resetColorsAndState();
+    grid.reset(height, width);
     endResetModel();
 }
 
@@ -186,25 +235,7 @@ CoordinatesVector GrainGrowthGridModel::getCoordinatesOfAvailableCells(bool **ma
 void GrainGrowthGridModel::setNeighbourhoodTransferObject(Neighbourhood neighbourhood, int radius) {
     processor->setNeighbourhoodTransferObject(new NeighbourhoodTransferObject<GrainCell>(grid, neighbourhood, radius));
     monteCarloProcessor->setNeighbourhoodTransferObject(new NeighbourhoodTransferObject<GrainCell>(grid, neighbourhood, radius));
-}
-
-void GrainGrowthGridModel::monteCarloStep() {
-    ++mcSimulationStep;
-    auto result = monteCarloProcessor->process(grid);
-    if (!result || mcSimulationStep == mcStepCount) {
-        stopSimulation();
-    }
-}
-
-void GrainGrowthGridModel::simulationStageEnded() {
-    switch (postProcessing) {
-        case PostProcessing::MONTE_CARLO:
-            stage = SimulationStage::MONTE_CARLO_STAGE;
-            break;
-        case PostProcessing::NONE:
-            stopSimulation();
-            break;
-    }
+    drxProcessor->setNeighbourhoodTransferObject(new NeighbourhoodTransferObject<GrainCell>(grid, neighbourhood, radius));
 }
 
 void GrainGrowthGridModel::setPostProcessing(PostProcessing processing) {
@@ -219,21 +250,18 @@ void GrainGrowthGridModel::setMonteCarloStepCount(int count) {
     mcStepCount = count;
 }
 
-void GrainGrowthGridModel::simulationStep() {
-    if (!processor->process(grid)) {
-        simulationStageEnded();
-    }
-}
-
 QVariant GrainGrowthGridModel::data(const QModelIndex &index, int role) const {
     int row = index.row();
     int column = index.column();
 
     if (role == Qt::BackgroundRole) {
-        if (viewMode == ViewMode::GRAINS){
-            return grid[row][column].getColor();
-        } else {
-            return grid[row][column].getEnergyColor();
+        switch (viewMode) {
+            case ViewMode::GRAINS:
+                return grid[row][column].getColor();
+            case ViewMode::ENERGY:
+                return grid[row][column].getEnergyColor();
+            case ViewMode::DISLOCATION:
+                return grid[row][column].getDislocationColor();
         }
     }
     return QVariant();
@@ -241,10 +269,24 @@ QVariant GrainGrowthGridModel::data(const QModelIndex &index, int role) const {
 
 void GrainGrowthGridModel::toggleViewMode() {
     beginResetModel();
-    if (viewMode == ViewMode::GRAINS) {
-        viewMode = ViewMode::ENERGY;
-    } else {
-        viewMode = ViewMode::GRAINS;
+    switch (viewMode) {
+        case ViewMode::GRAINS:
+            viewMode = ViewMode::ENERGY;
+            break;
+        case ViewMode::ENERGY:
+            viewMode = ViewMode::DISLOCATION;
+            break;
+        case ViewMode::DISLOCATION:
+            viewMode = ViewMode::GRAINS;
+            break;
     }
     endResetModel();
+}
+
+void GrainGrowthGridModel::setDrxTransferObject(DrxTransferObject &dto) {
+    drxProcessor->setDto(dto);
+}
+
+void GrainGrowthGridModel::setDrxStepCount(int count) {
+    drxStepCount = count;
 }

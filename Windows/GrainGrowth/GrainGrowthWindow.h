@@ -27,8 +27,6 @@ public slots:
 
     void onNeighbourhoodChanged(int currentIndex);
 
-    void onPostProcessingChanged(int currentIndex);
-
     void showMessageBox(const QString &message);
 
 private:
@@ -43,7 +41,11 @@ private:
 
     Neighbourhood getChosenNeighbourhood();
 
-    void initPostProcessingInputGroup();
+    void setNeighbourhood();
+
+    void setMonteCarloData();
+
+    void setDrxData();
 };
 
 #endif // GRAINGROWTHWINDOW_H

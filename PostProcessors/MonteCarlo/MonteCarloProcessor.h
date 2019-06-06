@@ -17,12 +17,9 @@ public:
 
     MonteCarloProcessor *setKt(double ktFactor);
 
-    MonteCarloProcessor *setNeighbourhoodRadius(int radius);
-
 protected:
     CoordinatesCellSet grainBoundaryCells;
     double kt{};
-    int neighbourhoodRadius{};
 
     NeighbourhoodTransferObject<GrainCell> *getNeighbourhoodTransferObject() override;
 

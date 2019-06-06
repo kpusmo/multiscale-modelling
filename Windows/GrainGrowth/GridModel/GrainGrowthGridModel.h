@@ -9,6 +9,7 @@
 #include <Neighbourhood/Service/TwoDimensionalNeighbourhoodService.h>
 #include <memory>
 #include <PostProcessors/MonteCarlo/MonteCarloProcessor.h>
+#include <PostProcessors/DRX/DrxProcessor.h>
 
 enum PostProcessing {
     NONE,
@@ -17,12 +18,14 @@ enum PostProcessing {
 
 enum SimulationStage {
     SIMULATION_STAGE,
-    MONTE_CARLO_STAGE
+    MONTE_CARLO_STAGE,
+    DRX_STAGE
 };
 
 enum ViewMode {
     GRAINS,
-    ENERGY
+    ENERGY,
+    DISLOCATION
 };
 
 class GrainGrowthGridModel : public GridModel<GrainCell> {
@@ -65,9 +68,13 @@ public:
 
     void setMonteCarloStepCount(int count);
 
+    void setDrxStepCount(int count);
+
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
     void toggleViewMode();
+
+    void setDrxTransferObject(DrxTransferObject &dto);
 
 public slots:
     void nextStep();
@@ -81,21 +88,22 @@ protected:
     bool isRunning{false};
     QTimer *timer{nullptr};
     MonteCarloProcessor *monteCarloProcessor;
+    DrxProcessor *drxProcessor;
     PostProcessing postProcessing{PostProcessing::MONTE_CARLO};
     SimulationStage stage{SIMULATION_STAGE};
     ViewMode viewMode{ViewMode::GRAINS};
     int mcStepCount{};
     int mcSimulationStep{1};
+    int drxSimulationStep{};
+    int drxStepCount{};
 
     bool isCellSelectionAvailable() override;
 
     void stopSimulation();
 
-    void monteCarloStep();
-
-    void simulationStageEnded();
-
 private:
+    void stageEnded();
+
     void markCellWithNeighboursAsUnavailable(int a, int b, bool **map, int radius);
 
     CoordinatesVector getCoordinatesOfAvailableCells(bool **map);
@@ -103,6 +111,10 @@ private:
     bool **getGridMapForRandomComposition(int radius);
 
     void simulationStep();
+
+    void monteCarloStep();
+
+    void drxStep();
 };
 
 

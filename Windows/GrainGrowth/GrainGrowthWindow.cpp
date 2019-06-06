@@ -8,7 +8,6 @@ GrainGrowthWindow::GrainGrowthWindow(QWidget *parent) : QMainWindow(parent), ui(
     initCelluralTable();
     initCompositionInputGroup();
     initNeighbourhoodInputGroup();
-    initPostProcessingInputGroup();
     connect(&gridModel, SIGNAL(showMessageBox(const QString &)), this, SLOT(showMessageBox(const QString &)));
 }
 
@@ -40,21 +39,11 @@ void GrainGrowthWindow::on_drawButton_clicked() {
 }
 
 void GrainGrowthWindow::on_simulateButton_clicked() {
-    auto periodicalBc = ui->periodicalBcRadioButton->isChecked();
-    auto neighbourhood = getChosenNeighbourhood();
-    auto neighbourhoodRadius = ui->radiusNeighbourhoodInput->value();
-    gridModel.setNeighbourhoodTransferObject(neighbourhood, neighbourhoodRadius);
+    setNeighbourhood();
+    setMonteCarloData();
+    setDrxData();
 
-    auto postProcessing = ui->postProcessingSelect->currentText();
-    if (postProcessing == "None") {
-        gridModel.setPostProcessing(PostProcessing::NONE);
-    } else if (postProcessing == "Monte Carlo") {
-        gridModel.setPostProcessing(PostProcessing::MONTE_CARLO);
-        auto kt = ui->ktFactorInput->value();
-        gridModel.setMonteCarloKTFactor(kt);
-        auto stepCount = ui->monteCarloStepCountInput->value();
-        gridModel.setMonteCarloStepCount(stepCount);
-    }
+    auto periodicalBc = ui->periodicalBcRadioButton->isChecked();
     gridModel.startSimulation(periodicalBc ? BoundaryCondition::PERIODICAL : BoundaryCondition::ABSORBING);
 }
 
@@ -129,23 +118,36 @@ void GrainGrowthWindow::showMessageBox(const QString &message) {
     messageBox.exec();
 }
 
-void GrainGrowthWindow::initPostProcessingInputGroup() {
-    connect(ui->postProcessingSelect, SIGNAL(currentIndexChanged(int)), this, SLOT(onPostProcessingChanged(int)));
-    for (int i = 0; i < ui->postProcessingInputGroup->count(); ++i) {
-        QSizePolicy::Policy policy = QSizePolicy::Ignored;
-        if (i == ui->postProcessingInputGroup->currentIndex()) {
-            policy = QSizePolicy::Expanding;
-        }
-        ui->postProcessingInputGroup->widget(i)->setSizePolicy(policy, policy);
-    }
-}
-
-void GrainGrowthWindow::onPostProcessingChanged(int currentIndex) {
-    ui->postProcessingInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    ui->postProcessingInputGroup->setCurrentIndex(currentIndex);
-    ui->postProcessingInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-}
-
 void GrainGrowthWindow::on_toggleViewModeButton_clicked() {
     gridModel.toggleViewMode();
+}
+
+void GrainGrowthWindow::setNeighbourhood() {
+    auto neighbourhood = getChosenNeighbourhood();
+    auto neighbourhoodRadius = ui->radiusNeighbourhoodInput->value();
+    gridModel.setNeighbourhoodTransferObject(neighbourhood, neighbourhoodRadius);
+}
+
+void GrainGrowthWindow::setMonteCarloData() {
+    gridModel.setPostProcessing(PostProcessing::MONTE_CARLO);
+    auto kt = ui->ktFactorInput->value();
+    gridModel.setMonteCarloKTFactor(kt);
+    auto stepCount = ui->monteCarloStepCountInput->value();
+    gridModel.setMonteCarloStepCount(stepCount);
+}
+
+void GrainGrowthWindow::setDrxData() {
+    DrxTransferObject dto{};
+    dto.boundaryProbability = ui->drxBoundaryProbabilityInput->value();
+    dto.randomDislocationPackFactor = ui->drxRandomPackFactor->value();
+    dto.firstPackPercent = ui->drxPackPercentInput->value();
+    dto.dt = ui->drxDtInput->value();
+    dto.roCritical = ui->drxRoCriticalInput->value();
+    dto.A = ui->drxAInput->value();
+    dto.B = ui->drxBInput->value();
+
+    gridModel.setDrxTransferObject(dto);
+
+    auto stepCount = ui->drxIterationCountInput->value();
+    gridModel.setDrxStepCount(stepCount);
 }

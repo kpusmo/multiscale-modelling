@@ -5,6 +5,7 @@
 
 unsigned GrainCell::nextState = 1;
 unsigned GrainCell::maxEnergy = 1;
+double GrainCell::maxDislocation = 1;
 ColorMap GrainCell::usedColors = ColorMap();
 
 GrainCell::GrainCell() : color(QColor(255, 255, 255)) {
@@ -58,7 +59,33 @@ void GrainCell::resetPreviousState() {
 }
 
 QColor GrainCell::getColor() const {
-    return color;
+    if (!recrystallized) {
+        return color;
+    }
+    auto h = 0, s = 255;
+    int v = 127. + dislocationDensity / maxDislocation * 128;
+    QColor c;
+    c.setHsv(h, s, v);
+    return c;
+}
+
+QColor GrainCell::getEnergyColor() const {
+    if (energy == 0) {
+        return QColor(0, 255, 0);
+    }
+    auto h = 0, s = 255;
+    int v = 127. + 1. * energy / maxEnergy * 128;
+    QColor c;
+    c.setHsv(h, s, v);
+    return c;
+}
+
+QColor GrainCell::getDislocationColor() const {
+    auto s = 255, h = recrystallized ? 0 : 120;
+    int v = 127. + dislocationDensity / maxDislocation * 128;
+    QColor c;
+    c.setHsv(h, s, v);
+    return c;
 }
 
 GrainCell &GrainCell::operator=(const GrainCell &other) {
@@ -119,20 +146,32 @@ bool GrainCell::isFake() const {
     return fake;
 }
 
-QColor GrainCell::getEnergyColor() const {
-    return energyColor;
-}
-
 void GrainCell::setEnergy(unsigned e) {
     energy = e;
     if (e == 0) {
-        energyColor.setRgb(0, 255, 0);
         return;
     }
     if (energy > maxEnergy) {
         maxEnergy = energy;
     }
-    auto h = 0, s = 255;
-    int v = 1. * e / maxEnergy * 255;
-    energyColor.setHsv(h, s, v);
+}
+
+bool GrainCell::isRecrystallized() const {
+    return recrystallized;
+}
+
+double GrainCell::getDislocationDensity() const {
+    return dislocationDensity;
+}
+
+void GrainCell::addDislocationDensity(double density) {
+    dislocationDensity += density;
+    if (dislocationDensity > maxDislocation) {
+        maxDislocation = dislocationDensity;
+    }
+}
+
+void GrainCell::recrystallize() {
+    recrystallized = true;
+    dislocationDensity = 0;
 }

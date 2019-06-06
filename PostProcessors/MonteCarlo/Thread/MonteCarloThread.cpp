@@ -44,6 +44,7 @@ void MonteCarloThread::operator()(int threadIndex, int chunkSize, int reminder, 
             continue;
         }
 
+        //create fake Cell-Coordinates pair, to check energy after changing the state
         auto fakeNewStateCellWithCoordinates = CellCoordinatesPair(randomNeighbour, cellWithCoordinates->second);
         auto newEnergy = calculateFreeEnergy(fakeNewStateCellWithCoordinates, cellNeighbourCoordinates);
 

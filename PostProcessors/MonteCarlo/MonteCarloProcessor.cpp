@@ -69,8 +69,3 @@ MonteCarloProcessor *MonteCarloProcessor::setKt(double ktFactor) {
     kt = ktFactor;
     return this;
 }
-
-MonteCarloProcessor *MonteCarloProcessor::setNeighbourhoodRadius(int radius) {
-    neighbourhoodRadius = radius;
-    return this;
-}
