@@ -1,7 +1,7 @@
 #include <Neighbourhood/Service/TwoDimensionalNeighbourhoodService.h>
 #include "DrxProcessor.h"
 #include <atomic>
-#include <PostProcessors/DRX/Thread/DrxThread.h>
+#include <Windows/GrainGrowth/Processors/DRX/Thread/DrxThread.h>
 #include <numeric>
 #include <fstream>
 

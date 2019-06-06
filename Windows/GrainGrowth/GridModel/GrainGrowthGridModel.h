@@ -8,8 +8,8 @@
 #include <Neighbourhood/Neighbourhood.h>
 #include <Neighbourhood/Service/TwoDimensionalNeighbourhoodService.h>
 #include <memory>
-#include <PostProcessors/MonteCarlo/MonteCarloProcessor.h>
-#include <PostProcessors/DRX/DrxProcessor.h>
+#include <Windows/GrainGrowth/Processors/MonteCarlo/MonteCarloProcessor.h>
+#include <Windows/GrainGrowth/Processors/DRX/DrxProcessor.h>
 
 enum PostProcessing {
     NONE,

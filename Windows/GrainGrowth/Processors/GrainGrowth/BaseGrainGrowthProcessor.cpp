@@ -1,6 +1,6 @@
 #include "BaseGrainGrowthProcessor.h"
 #include <Neighbourhood/Service/TwoDimensionalNeighbourhoodService.h>
-#include <Windows/GrainGrowth/Processor/Threads/GrainGrowthThread.h>
+#include <Windows/GrainGrowth/Processors/GrainGrowth/Threads/GrainGrowthThread.h>
 #include <boost/thread/barrier.hpp>
 
 const int BaseGrainGrowthProcessor::MAX_CELLS_PER_THREAD = 10000;

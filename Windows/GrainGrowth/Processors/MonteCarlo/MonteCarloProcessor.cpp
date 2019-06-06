@@ -1,6 +1,6 @@
 #include "MonteCarloProcessor.h"
 #include <Neighbourhood/Service/TwoDimensionalNeighbourhoodService.h>
-#include <PostProcessors/MonteCarlo/Thread/MonteCarloThread.h>
+#include <Windows/GrainGrowth/Processors/MonteCarlo/Thread/MonteCarloThread.h>
 
 const int MonteCarloProcessor::MAX_CELLS_PER_THREAD = 500;
 const int MonteCarloProcessor::MAX_THREAD_COUNT = 12;

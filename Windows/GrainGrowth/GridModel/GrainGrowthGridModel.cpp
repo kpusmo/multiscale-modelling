@@ -2,7 +2,7 @@
 #include "GrainGrowthGridModel.h"
 #include <sstream>
 #include <QTimer>
-#include <Windows/GrainGrowth/Processor/GrainGrowthProcessor.h>
+#include <Windows/GrainGrowth/Processors/GrainGrowth/GrainGrowthProcessor.h>
 
 GrainGrowthGridModel::GrainGrowthGridModel() : GrainGrowthGridModel(new GrainGrowthProcessor) {}
 

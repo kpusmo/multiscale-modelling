@@ -1,6 +1,6 @@
 #include "GrainGrowthProcessor.h"
 #include <mutex>
-#include <Windows/GrainGrowth/Processor/Threads/RadiusGrainGrowthThread.h>
+#include <Windows/GrainGrowth/Processors/GrainGrowth/Threads/RadiusGrainGrowthThread.h>
 
 const int GrainGrowthProcessor::MAX_CELLS_PER_THREAD = 500;
 const int GrainGrowthProcessor::MAX_THREAD_COUNT = 12;

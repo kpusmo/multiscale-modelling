@@ -2,7 +2,7 @@
 #define WIELOSKALOWE_GRAINGROWTHPROCESSOR_H
 
 
-#include <Windows/GrainGrowth/Processor/BaseGrainGrowthProcessor.h>
+#include <Windows/GrainGrowth/Processors/GrainGrowth/BaseGrainGrowthProcessor.h>
 
 /**
  * Processor for radius neighbourhood
