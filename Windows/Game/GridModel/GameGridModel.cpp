@@ -50,7 +50,7 @@ void GameGridModel::setStartingComposition(const QString &startingComposition) {
     std::uniform_int_distribution<> distributionHeight(0, grid.getHeight() - 1);
     auto i = distributionHeight(generator);
     auto j = distributionWidth(generator);
-    if (startingComposition == "Niezmienny") {
+    if (startingComposition == "Still") {
         grid[i][j].setState(1);
         grid[i + 1][j + 1].setState(1);
         grid[i + 1][j + 2].setState(1);
@@ -63,11 +63,15 @@ void GameGridModel::setStartingComposition(const QString &startingComposition) {
         grid[i - 1][j].setState(1);
         grid[i - 1][j - 1].setState(1);
         grid[i - 2][j + 1].setState(1);
-    } else if (startingComposition == "Oscylator") {
+    }
+    else if (startingComposition == "Oscillator")
+    {
         grid[i][j].setState(1);
         grid[i + 1][j].setState(1);
         grid[i + 2][j].setState(1);
-    } else if (startingComposition == "Losowy") {
+    }
+    else if (startingComposition == "Random")
+    {
         grid.changeRandomCellStates(i * j);
     }
 }

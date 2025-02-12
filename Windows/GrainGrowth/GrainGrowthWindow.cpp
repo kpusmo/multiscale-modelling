@@ -3,7 +3,8 @@
 #include "GrainGrowthWindow.h"
 #include "ui_graingrowthwindow.h"
 
-GrainGrowthWindow::GrainGrowthWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::GrainGrowthWindow) {
+GrainGrowthWindow::GrainGrowthWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::GrainGrowthWindow)
+{
     ui->setupUi(this);
     initCelluralTable();
     initCompositionInputGroup();
@@ -11,11 +12,13 @@ GrainGrowthWindow::GrainGrowthWindow(QWidget *parent) : QMainWindow(parent), ui(
     connect(&gridModel, SIGNAL(showMessageBox(const QString &)), this, SLOT(showMessageBox(const QString &)));
 }
 
-GrainGrowthWindow::~GrainGrowthWindow() {
+GrainGrowthWindow::~GrainGrowthWindow()
+{
     delete ui;
 }
 
-void GrainGrowthWindow::on_drawButton_clicked() {
+void GrainGrowthWindow::on_drawButton_clicked()
+{
     auto height = ui->heightInput->value();
     auto width = ui->widthInput->value();
     auto startingComposition = ui->startingCompositionSelect->currentText();
@@ -24,21 +27,27 @@ void GrainGrowthWindow::on_drawButton_clicked() {
     ui->celluralTable->horizontalHeader()->setDefaultSectionSize(size);
 
     gridModel.drawGrid(height, width);
-    if (startingComposition == "Jednorodny") {
+    if (startingComposition == "Evenly distributed")
+    {
         auto rows = ui->grainRowsInput->value();
         auto columns = ui->grainColumnsInput->value();
         gridModel.setHomogeneousComposition(rows, columns);
-    } else if (startingComposition == "Losowy") {
+    }
+    else if (startingComposition == "Random")
+    {
         auto count = ui->randomGrainCountInput->value();
         gridModel.setRandomComposition(count);
-    } else if (startingComposition == "Losowy z promieniem") {
+    }
+    else if (startingComposition == "Random with radius")
+    {
         auto count = ui->randomWithRadiusGrainCountInput->value();
         auto radius = ui->radiusInput->value();
         gridModel.setRandomComposition(count, radius);
     }
 }
 
-void GrainGrowthWindow::on_simulateButton_clicked() {
+void GrainGrowthWindow::on_simulateButton_clicked()
+{
     setNeighbourhood();
     setMonteCarloData();
     setDrxData();
@@ -47,88 +56,111 @@ void GrainGrowthWindow::on_simulateButton_clicked() {
     gridModel.startSimulation(periodicalBc ? BoundaryCondition::PERIODICAL : BoundaryCondition::ABSORBING);
 }
 
-Neighbourhood GrainGrowthWindow::getChosenNeighbourhood() {
+Neighbourhood GrainGrowthWindow::getChosenNeighbourhood()
+{
     auto neighbourhoodOption = ui->neighbourhoodSelect->currentText();
-    if (neighbourhoodOption == "Heksagonalne") {
+    if (neighbourhoodOption == "Hexagonal")
+    {
         auto index = ui->hexagonalSelect->currentIndex();
         auto type = ui->hexagonalSelect->currentText();
-        if (type == "Losowo") {
+        if (type == "Losowo")
+        {
             return Neighbourhood::HEXAGONAL_RANDOM;
         }
         return HEXAGONALS[index];
-    } else if (neighbourhoodOption == "Pentagonalne") {
+    }
+    else if (neighbourhoodOption == "Pentagonal")
+    {
         auto index = ui->pentagonalSelect->currentIndex();
         auto type = ui->pentagonalSelect->currentText();
-        if (type == "Losowe") {
+        if (type == "Random")
+        {
             return Neighbourhood::PENTAGONAL_RANDOM;
         }
         return PENTAGONALS[index];
-    } else if (neighbourhoodOption == "Moore'a") {
+    }
+    else if (neighbourhoodOption == "Moore")
+    {
         return Neighbourhood::MOORE;
-    } else if (neighbourhoodOption == "Promień") {
+    }
+    else if (neighbourhoodOption == "Radius")
+    {
         return Neighbourhood::RADIUS;
     }
     return Neighbourhood::VON_NEUMNANN;
 }
 
-void GrainGrowthWindow::onStartingCompositionChanged(int currentIndex) {
+void GrainGrowthWindow::onStartingCompositionChanged(int currentIndex)
+{
     ui->compositionInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     ui->compositionInputGroup->setCurrentIndex(currentIndex);
     ui->compositionInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
-void GrainGrowthWindow::initCompositionInputGroup() {
+void GrainGrowthWindow::initCompositionInputGroup()
+{
     connect(ui->startingCompositionSelect, SIGNAL(currentIndexChanged(int)), this, SLOT(onStartingCompositionChanged(int)));
-    for (int i = 0; i < ui->compositionInputGroup->count(); ++i) {
+    for (int i = 0; i < ui->compositionInputGroup->count(); ++i)
+    {
         QSizePolicy::Policy policy = QSizePolicy::Ignored;
-        if (i == ui->compositionInputGroup->currentIndex()) {
+        if (i == ui->compositionInputGroup->currentIndex())
+        {
             policy = QSizePolicy::Expanding;
         }
         ui->compositionInputGroup->widget(i)->setSizePolicy(policy, policy);
     }
 }
 
-void GrainGrowthWindow::initNeighbourhoodInputGroup() {
+void GrainGrowthWindow::initNeighbourhoodInputGroup()
+{
     connect(ui->neighbourhoodSelect, SIGNAL(currentIndexChanged(int)), this, SLOT(onNeighbourhoodChanged(int)));
-    for (int i = 0; i < ui->neighbourhoodInputGroup->count(); ++i) {
+    for (int i = 0; i < ui->neighbourhoodInputGroup->count(); ++i)
+    {
         QSizePolicy::Policy policy = QSizePolicy::Ignored;
-        if (i == ui->neighbourhoodInputGroup->currentIndex()) {
+        if (i == ui->neighbourhoodInputGroup->currentIndex())
+        {
             policy = QSizePolicy::Expanding;
         }
         ui->neighbourhoodInputGroup->widget(i)->setSizePolicy(policy, policy);
     }
 }
 
-void GrainGrowthWindow::initCelluralTable() {
+void GrainGrowthWindow::initCelluralTable()
+{
     ui->celluralTable->setModel(&gridModel);
     ui->celluralTable->setFocusPolicy(Qt::NoFocus);
     ui->celluralTable->setSelectionMode(QAbstractItemView::NoSelection);
     connect(ui->celluralTable, SIGNAL(clicked(const QModelIndex &)), &gridModel, SLOT(onCellSelected(const QModelIndex &)));
 }
 
-void GrainGrowthWindow::onNeighbourhoodChanged(int currentIndex) {
+void GrainGrowthWindow::onNeighbourhoodChanged(int currentIndex)
+{
     ui->neighbourhoodInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     ui->neighbourhoodInputGroup->setCurrentIndex(currentIndex);
     ui->neighbourhoodInputGroup->currentWidget()->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
-void GrainGrowthWindow::showMessageBox(const QString &message) {
+void GrainGrowthWindow::showMessageBox(const QString &message)
+{
     QMessageBox messageBox;
     messageBox.setText(message);
     messageBox.exec();
 }
 
-void GrainGrowthWindow::on_toggleViewModeButton_clicked() {
+void GrainGrowthWindow::on_toggleViewModeButton_clicked()
+{
     gridModel.toggleViewMode();
 }
 
-void GrainGrowthWindow::setNeighbourhood() {
+void GrainGrowthWindow::setNeighbourhood()
+{
     auto neighbourhood = getChosenNeighbourhood();
     auto neighbourhoodRadius = ui->radiusNeighbourhoodInput->value();
     gridModel.setNeighbourhoodTransferObject(neighbourhood, neighbourhoodRadius);
 }
 
-void GrainGrowthWindow::setMonteCarloData() {
+void GrainGrowthWindow::setMonteCarloData()
+{
     gridModel.setPostProcessing(PostProcessing::MONTE_CARLO);
     auto kt = ui->ktFactorInput->value();
     gridModel.setMonteCarloKTFactor(kt);
@@ -136,7 +168,8 @@ void GrainGrowthWindow::setMonteCarloData() {
     gridModel.setMonteCarloStepCount(stepCount);
 }
 
-void GrainGrowthWindow::setDrxData() {
+void GrainGrowthWindow::setDrxData()
+{
     DrxTransferObject dto{};
     dto.boundaryProbability = ui->drxBoundaryProbabilityInput->value();
     dto.randomDislocationPackFactor = ui->drxRandomPackFactor->value();

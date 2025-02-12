@@ -11,28 +11,28 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Multiscale modelling</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
      <widget class="QPushButton" name="oneDimensionalModeButton">
       <property name="text">
-       <string>Jednowymiarowa symulacja</string>
+       <string>Elementary cellural automaton</string>
       </property>
      </widget>
     </item>
     <item row="0" column="1">
      <widget class="QPushButton" name="gameModeButton">
       <property name="text">
-       <string>Gra w życie</string>
+       <string>Game of life</string>
       </property>
      </widget>
     </item>
     <item row="0" column="2">
      <widget class="QPushButton" name="grainGrowthButton">
       <property name="text">
-       <string>Rozrost ziaren</string>
+       <string>Grains growth</string>
       </property>
      </widget>
     </item>

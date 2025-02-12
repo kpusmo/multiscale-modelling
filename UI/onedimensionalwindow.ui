@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1161</width>
-    <height>764</height>
+    <width>1300</width>
+    <height>900</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>OneDimensionalWindow</string>
+   <string>Elementary</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout" columnstretch="1,5">
@@ -39,7 +39,7 @@
       <item row="0" column="1">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Liczba komórek</string>
+         <string>Cell count</string>
         </property>
        </widget>
       </item>
@@ -51,19 +51,22 @@
         <property name="maximum">
          <number>20000</number>
         </property>
+        <property name="value">
+          <number>200</number>
+        </property>
        </widget>
       </item>
       <item row="4" column="1">
        <widget class="QPushButton" name="drawButton">
         <property name="text">
-         <string>Rysuj</string>
+         <string>Draw</string>
         </property>
        </widget>
       </item>
       <item row="5" column="1">
        <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Liczba kroków symulacji</string>
+         <string>Simulation step count</string>
         </property>
        </widget>
       </item>
@@ -75,12 +78,15 @@
         <property name="maximum">
          <number>20000</number>
         </property>
+        <property name="value">
+          <number>200</number>
+        </property>
        </widget>
       </item>
       <item row="7" column="1">
        <widget class="QLabel" name="label_3">
         <property name="text">
-         <string>Reguła</string>
+         <string>Rule (0-255)</string>
         </property>
        </widget>
       </item>
@@ -89,19 +95,22 @@
         <property name="maximum">
          <number>255</number>
         </property>
+        <property name="value">
+          <number>131</number>
+        </property>
        </widget>
       </item>
       <item row="11" column="1">
        <widget class="QPushButton" name="startButton">
         <property name="text">
-         <string>Rozpocznij symulację</string>
+         <string>Start simulation</string>
         </property>
        </widget>
       </item>
       <item row="2" column="1">
        <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>Liczba komórek ze stanem wysokim</string>
+         <string>High state cell count</string>
         </property>
        </widget>
       </item>
@@ -112,6 +121,9 @@
         </property>
         <property name="maximum">
          <number>20000</number>
+        </property>
+        <property name="value">
+          <number>20</number>
         </property>
        </widget>
       </item>
